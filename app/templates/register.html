@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+{% block title %}Authentication{% endblock %}
+{% block content %}
+<style>
+
+  .auth-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+      min-height: calc(100vh - 4rem);
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .auth-image {
+    flex: 0.8;
+    margin: 4rem 4rem 4rem 4rem;
+    background-size: cover;
+    background-position: center;
+    display: none;
+  }
+
+  .auth-form {
+    flex: 1;
+    padding: 4rem 4rem 4rem 8rem;
+      height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    background: rgba(255,255,255,0.95);
+  }
+
+  .form-floating {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-control {
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    padding: 1rem;
+  }
+
+  .form-control:focus {
+    border-color: #333;
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .btn-auth {
+    background: #212121;
+    color: white;
+    border-radius: 12px;
+    padding: 0.75rem;
+    width: 60%;
+    margin-left: 20%;
+    font-weight: bold;
+    transition: 0.3s ease;
+  }
+
+  .btn-auth:hover {
+    background: #3B666B;
+  }
+
+  .form-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    color: #111827;
+  }
+
+  .auth-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .auth-toggle button {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #666;
+    position: relative;
+    transition: color 0.3s ease;
+  }
+
+  .auth-toggle button.active {
+    color: #212121;
+  }
+
+  .auth-toggle button.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 100%;
+    height: 2px;
+    background: #212121;
+    border-radius: 2px;
+  }
+
+  @media (min-width: 768px) {
+    .auth-image {
+      display: block;
+    }
+  }
+</style>
+<div class="auth-wrapper">
+  <div class="auth-image" id="authImage" style="background-image: url('https://illustrations.popsy.co/gray/work-from-home.svg');"></div>
+  <div class="auth-form">
+    <div class="auth-toggle">
+      <button id="btnLogin" class="active">Login</button>
+      <button id="btnRegister">Register</button>
+    </div>
+
+    <div id="loginForm">
+      <div class="form-title">Welcome Back</div>
+      <form id="login-form">
+        <div class="form-floating mb-3">
+          <input type="email" name="email" class="form-control" id="loginEmail" placeholder="Email" required>
+          <label for="loginEmail">Email</label>
+        </div>
+        <div class="form-floating mb-4 position-relative">
+          <input type="password" name="password" class="form-control" id="loginPassword" placeholder="Password" required>
+          <label for="loginPassword">Password</label>
+          <i class="fas fa-eye position-absolute top-50 end-0 translate-middle-y me-3" style="cursor: pointer; font-size: 1.2rem; z-index: 5;" onclick="togglePasswordVisibility(this)"></i>
+        </div>
+        <button type="submit" class="btn btn-auth">
+          <i class="fas fa-sign-in-alt me-2"></i>Login
+        </button>
+      </form>
+    </div>
+
+    <div id="registerForm" style="display: none">
+      <div class="form-title">Create an Account</div>
+      <form id="register-form">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-floating mb-3">
+              <input type="text" name="full_name" class="form-control" id="fullName" placeholder="Full Name" required>
+              <label for="fullName">Full Name</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-floating mb-3">
+              <input type="text" name="username" class="form-control" id="username" placeholder="Username" required>
+              <label for="username">Username</label>
+            </div>
+          </div>
+        </div>
+        <div class="form-floating mb-3">
+          <input type="email" name="email" class="form-control" id="regEmail" placeholder="Email" required>
+          <label for="regEmail">Email</label>
+        </div>
+        <div class="form-floating mb-3">
+          <input type="tel" name="phone_number" class="form-control" id="phoneNumber" placeholder="Phone Number" required>
+          <label for="phoneNumber">Phone Number</label>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-floating mb-3">
+              <input type="password" name="password" class="form-control" id="regPassword" placeholder="Password" required>
+              <label for="regPassword">Password</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-floating mb-4">
+              <input type="password" name="confirm_password" class="form-control" id="confirmPassword" placeholder="Confirm Password" required>
+              <label for="confirmPassword">Confirm Password</label>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-auth">
+          <i class="fas fa-user-plus me-2"></i>Create Account
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const btnLogin = document.getElementById("btnLogin");
+  const btnRegister = document.getElementById("btnRegister");
+  const loginForm = document.getElementById("loginForm");
+  const registerForm = document.getElementById("registerForm");
+  const authImage = document.getElementById("authImage");
+
+  function togglePasswordVisibility(icon) {
+    const passwordInput = document.getElementById("loginPassword");
+    const isVisible = passwordInput.type === "text";
+    passwordInput.type = isVisible ? "password" : "text";
+    icon.classList.toggle("fa-eye");
+    icon.classList.toggle("fa-eye-slash");
+  }
+
+  btnLogin.addEventListener("click", () => {
+    btnLogin.classList.add("active");
+    btnRegister.classList.remove("active");
+    loginForm.style.display = "block";
+    registerForm.style.display = "none";
+    authImage.style.backgroundImage = "url('https://illustrations.popsy.co/gray/work-from-home.svg')";
+  });
+
+  btnRegister.addEventListener("click", () => {
+    btnRegister.classList.add("active");
+    btnLogin.classList.remove("active");
+    loginForm.style.display = "none";
+    registerForm.style.display = "block";
+    authImage.style.backgroundImage = "url('https://illustrations.popsy.co/gray/home-from-work.svg')";
+  });
+
+  document.getElementById("login-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        window.location.href = "/dashboard";
+      } else {
+        alert(data.error || "Login failed");
+      }
+    } catch (err) {
+      alert("Network error");
+    }
+  });
+
+  document.getElementById("register-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const full_name = document.getElementById("fullName").value;
+    const username = document.getElementById("username").value;
+    const email = document.getElementById("regEmail").value;
+    const phone_number = document.getElementById("phoneNumber").value;
+    const password = document.getElementById("regPassword").value;
+    const confirm_password = document.getElementById("confirmPassword").value;
+
+    if (password !== confirm_password) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ full_name, username, email, phone_number, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("Account created successfully");
+        btnLogin.click();
+      } else {
+        alert(data.error || "Registration failed");
+      }
+    } catch (err) {
+      alert("Network error");
+    }
+  });
+</script>
+{% endblock %}

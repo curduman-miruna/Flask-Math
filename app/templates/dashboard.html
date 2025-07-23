@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Math Dashboard{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">Math Operations Dashboard</h2>
+
+  <!-- Power -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5>Power (xⁿ)</h5>
+      <div class="row g-2">
+        <div class="col-md-3">
+          <input type="number" id="pow-base" class="form-control" placeholder="Base">
+        </div>
+        <div class="col-md-3">
+          <input type="number" id="pow-exp" class="form-control" placeholder="Exponent">
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-dark w-100" onclick="callPower()">Compute</button>
+        </div>
+        <div class="col-md-3">
+          <p id="pow-result" class="mt-2 text-primary"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fibonacci -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5>Fibonacci (n-th term)</h5>
+      <div class="row g-2">
+        <div class="col-md-3">
+          <input type="number" id="fib-n" class="form-control" placeholder="n">
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-dark w-100" onclick="callFibonacci()">Compute</button>
+        </div>
+        <div class="col-md-6">
+          <p id="fib-result" class="mt-2 text-primary"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Factorial -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5>Factorial (n!)</h5>
+      <div class="row g-2">
+        <div class="col-md-3">
+          <input type="number" id="fact-n" class="form-control" placeholder="n">
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-dark w-100" onclick="callFactorial()">Compute</button>
+        </div>
+        <div class="col-md-6">
+          <p id="fact-result" class="mt-2 text-primary"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function callPower() {
+    const base = document.getElementById("pow-base").value;
+    const exponent = document.getElementById("pow-exp").value;
+
+    const res = await fetch("/api/math/pow", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ base, exponent })
+    });
+
+    const data = await res.json();
+    document.getElementById("pow-result").innerText = data.result !== undefined ? `Result: ${data.result}` : `Error: ${data.error}`;
+  }
+
+  async function callFibonacci() {
+    const n = document.getElementById("fib-n").value;
+
+    const res = await fetch("/api/math/fibonacci", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ n })
+    });
+
+    const data = await res.json();
+    document.getElementById("fib-result").innerText = data.result !== undefined ? `Result: ${data.result}` : `Error: ${data.error}`;
+  }
+
+  async function callFactorial() {
+    const n = document.getElementById("fact-n").value;
+
+    const res = await fetch("/api/math/factorial", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ n })
+    });
+
+    const data = await res.json();
+    document.getElementById("fact-result").innerText = data.result !== undefined ? `Result: ${data.result}` : `Error: ${data.error}`;
+  }
+</script>
+{% endblock %}
