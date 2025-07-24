@@ -226,7 +226,7 @@
       });
       const data = await res.json();
       if (res.ok) {
-        window.location.href = "/dashboard";
+        window.location.href = "/web/dashboard";
       } else {
         alert(data.error || "Login failed");
       }

@@ -8,7 +8,7 @@ class AdminRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.sk'), nullable=False)
     status = db.Column(db.String(20), nullable=False, default='pending')  # pending, approved, rejected
-    requested_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    requested_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
     resolved_at = db.Column(db.DateTime, nullable=True)
 
     user = db.relationship("User", backref="admin_requests")
@@ -16,7 +16,7 @@ class AdminRequest(db.Model):
     def __init__(self, user_id):
         self.user_id = user_id
         self.status = "pending"
-        self.requested_at = datetime.utcnow()
+        self.requested_at = datetime.now()
 
     def to_dict(self):
         return {
