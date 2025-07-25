@@ -31,3 +31,10 @@ gmpy2~=2.2.1
 Flask~=3.1.0
 Flask-Migrate~=4.1.0
 alembic~=1.16.4
+typing_extensions~=4.13.0
+kafka-python~=2.2.15
+typing_extensions~=4.13.0
+Flask-JWT-Extended~=4.7.1
+typing_extensions~=4.13.0
+pydantic~=2.7.4
+pydantic[email]

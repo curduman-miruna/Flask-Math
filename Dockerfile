@@ -2,7 +2,7 @@
 FROM python:3.10-alpine
 WORKDIR /app
 COPY . /app
-ENV FLASK_APP app.py
+ENV FLASK_APP run.py
 ENV FLASK_RUN_HOST=0.0.0.0
 RUN apk add --no-cache gcc musl-dev linux-headers
 COPY requirements.txt requirements.txt

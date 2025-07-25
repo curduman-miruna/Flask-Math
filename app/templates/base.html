@@ -1,56 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}App{% endblock %}</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}My App{% endblock %}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       min-height: 100vh;
       display: flex;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-family: 'Segoe UI', Roboto, sans-serif;
       background: #f5f5f5;
       overflow-x: hidden;
     }
     .sidebar {
       position: fixed;
-      left: 0;
-      top: 0;
+      top: 0; left: 0;
       height: 100vh;
       width: 60px;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255,255,255,0.95);
       border-right: 1px solid #e0e0e0;
       transition: all 0.2s ease;
       z-index: 1000;
-      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.05);
-      overflow: hidden;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.05);
       padding-top: 1rem;
     }
-    .sidebar.expanded {
-      width: 200px;
-    }
-    .logo-text, .nav-text, .nav-badge {
-      opacity: 0;
-      transform: translateX(-20px);
-      transition: all 0.2s ease;
-      white-space: nowrap;
-    }
-    .sidebar.expanded .logo-text,
-    .sidebar.expanded .nav-text {
-      display: inline-block;
-      opacity: 1;
-      transform: translateX(0);
-    }
-    .sidebar:not(.expanded) .nav-text{
-      display: none;
-    }
+    .sidebar.expanded { width: 200px; }
+    .nav-text { opacity: 0; transform: translateX(-20px); transition: 0.2s ease; white-space: nowrap; }
+    .sidebar.expanded .nav-text { opacity: 1; transform: translateX(0); }
+    .sidebar:not(.expanded) .nav-text { display: none; }
 
     .nav-link {
       display: flex;
@@ -60,124 +40,89 @@
       text-decoration: none;
       transition: all 0.2s ease;
       position: relative;
-      overflow: hidden;
       gap: 10px;
-      white-space: nowrap;
     }
-    .nav-link::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      transition: all 0.2s ease;
-      z-index: 0;
-    }
-    .nav-link:hover::before,
-    .nav-link.active::before {
-      left: 0;
-    }
+
     .nav-link:hover,
     .nav-link.active {
       color: #3B666B;
       font-weight: bold;
-      background: rgba(59, 102, 107, 0.1);
-
+      background: rgba(59,102,107,0.1);
     }
+
     .main {
       flex-grow: 1;
       margin-left: 60px;
-      padding: 2rem;
+        padding: 2rem;
       min-height: 100vh;
-      background: transparent;
       transition: margin-left 0.2s ease;
     }
-    .sidebar.expanded ~ .main {
-      margin-left: 200px;
-    }
+    .sidebar.expanded ~ .main { margin-left: 200px; }
     .main-content {
       background: #fff;
       border: 1px solid #e0e0e0;
       border-radius: 24px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.05);
       min-height: calc(100vh - 4rem);
       transition: all 0.2s ease;
-    }
-    .page-transition {
-      animation: slideIn 0.2s ease-out;
-    }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
   <div class="sidebar" id="sidebar">
     <nav class="nav-menu">
-      <div class="nav-item">
-        <a href="/" class="nav-link active">
-          <i class="nav-icon fas fa-home"></i>
-          <span class="nav-text">Home</span>
-        </a>
-      </div>
-      <div class="nav-item">
-        <a href="/web/dashboard" class="nav-link">
-          <i class="nav-icon fas fa-chart-pie"></i>
-          <span class="nav-text">Dashboard</span>
-        </a>
-      </div>
-      <div class="nav-item">
-        <a href="/analytics" class="nav-link">
-          <i class="nav-icon fas fa-chart-line"></i>
-          <span class="nav-text">Analytics</span>
-        </a>
-      </div>
-      <div class="nav-item">
-        <a href="/profile" class="nav-link">
-          <i class="nav-icon fas fa-user-circle"></i>
-          <span class="nav-text">Profile</span>
-        </a>
-      </div>
-      <div class="nav-item">
-        <a href="/settings" class="nav-link">
-          <i class="nav-icon fas fa-cog"></i>
-          <span class="nav-text">Settings</span>
-        </a>
-      </div>
-      <div class="nav-item">
-        <a href="/logout" class="nav-link">
-          <i class="nav-icon fas fa-sign-out-alt"></i>
-          <span class="nav-text">Logout</span>
-        </a>
-      </div>
+      <div class="nav-item"><a href="/web/" class="nav-link"><i class="fas fa-home"></i><span class="nav-text">Home</span></a></div>
+      <div class="nav-item"><a href="/web/dashboard" class="nav-link"><i class="fas fa-chart-pie"></i><span class="nav-text">Dashboard</span></a></div>
+      <div class="nav-item"><a href="/analytics" class="nav-link"><i class="fas fa-chart-line"></i><span class="nav-text">Analytics</span></a></div>
+      <div class="nav-item"><a href="/profile" class="nav-link"><i class="fas fa-user-circle"></i><span class="nav-text">Profile</span></a></div>
+      <div class="nav-item"><a href="/settings" class="nav-link"><i class="fas fa-cog"></i><span class="nav-text">Settings</span></a></div>
+      <div class="nav-item"><a href="#" id="logout-link" class="nav-link"><i class="fas fa-sign-out-alt"></i><span class="nav-text">Logout</span></a></div>
     </nav>
   </div>
+
   <div class="main">
     <div class="main-content page-transition">
       {% block content %}
-      <h1>Welcome to MyApp</h1>
-      <p>This is your modern dashboard with an amazing sidebar navigation.</p>
       {% endblock %}
     </div>
   </div>
+
   <script>
     const sidebar = document.getElementById('sidebar');
 
-    // auto toggle on hover desktop
-    let hoverTimeout;
+    // Hover effect
     sidebar.addEventListener('mouseenter', () => {
-      if (window.innerWidth >= 768) {
-        clearTimeout(hoverTimeout);
-        sidebar.classList.add('expanded');
-      }
+      if (window.innerWidth >= 768) sidebar.classList.add('expanded');
     });
     sidebar.addEventListener('mouseleave', () => {
-      if (window.innerWidth >= 768) {
-        hoverTimeout = setTimeout(() => {
-          sidebar.classList.remove('expanded');
-        }, 300);
+      if (window.innerWidth >= 768) sidebar.classList.remove('expanded');
+    });
+
+    // Highlight current nav link
+    const currentPath = window.location.pathname;
+    document.querySelectorAll(".nav-link").forEach(link => {
+      const href = link.getAttribute("href");
+      if (href === currentPath || (href !== "/web/" && currentPath.startsWith(href))) {
+        link.classList.add("active");
+      }
+    });
+
+    // Logout handler
+    document.getElementById("logout-link").addEventListener("click", async function (e) {
+      e.preventDefault();
+      if (!confirm("Are you sure you want to log out?")) return;
+      try {
+        const res = await fetch("/api/auth/logout", {
+          method: "POST",
+          credentials: "include"
+        });
+        if (res.ok) {
+          window.location.href = "/web/"; // or /auth
+        } else {
+          alert("Logout failed");
+        }
+      } catch (err) {
+        alert("Network error during logout");
       }
     });
   </script>

@@ -64,13 +64,21 @@
 
 <script>
   async function callPower() {
-    const base = document.getElementById("pow-base").value;
-    const exponent = document.getElementById("pow-exp").value;
+    const baseRaw = document.getElementById("pow-base").value;
+    const expRaw = document.getElementById("pow-exp").value;
+    const base = Number(baseRaw);
+    const exponent = Number(expRaw);
+
+    if (isNaN(base) || isNaN(exponent)) {
+      document.getElementById("pow-result").innerText = "Invalid input.";
+      return;
+    }
 
     const res = await fetch("/api/math/pow", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ base, exponent })
+      body: JSON.stringify({ base, exponent }),
+      credentials: "include"
     });
 
     const data = await res.json();
@@ -78,12 +86,19 @@
   }
 
   async function callFibonacci() {
-    const n = document.getElementById("fib-n").value;
+    const nRaw = document.getElementById("fib-n").value;
+    const n = Number(nRaw);
+
+    if (isNaN(n)) {
+      document.getElementById("fib-result").innerText = "Invalid input.";
+      return;
+    }
 
     const res = await fetch("/api/math/fibonacci", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ n })
+      body: JSON.stringify({ n }),
+      credentials: "include"
     });
 
     const data = await res.json();
@@ -91,16 +106,24 @@
   }
 
   async function callFactorial() {
-    const n = document.getElementById("fact-n").value;
+    const nRaw = document.getElementById("fact-n").value;
+    const n = Number(nRaw);
+
+    if (isNaN(n)) {
+      document.getElementById("fact-result").innerText = "Invalid input.";
+      return;
+    }
 
     const res = await fetch("/api/math/factorial", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ n })
+      body: JSON.stringify({ n }),
+      credentials: "include"
     });
 
     const data = await res.json();
     document.getElementById("fact-result").innerText = data.result !== undefined ? `Result: ${data.result}` : `Error: ${data.error}`;
   }
 </script>
+
 {% endblock %}
