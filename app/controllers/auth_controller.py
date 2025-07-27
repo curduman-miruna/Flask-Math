@@ -7,9 +7,12 @@ from flask_jwt_extended import (
 from app.schemas.auth_schema import RegisterSchema, LoginSchema
 from pydantic import ValidationError
 
+from app.utils.decorators.log_decorator import log_to_postgres
+
 auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/register", methods=["POST"])
+@log_to_postgres(source="/auth/register" ,service_name="auth_service")
 def register():
     try:
         data = RegisterSchema(**request.get_json())
@@ -27,13 +30,14 @@ def register():
         return jsonify({"error": str(e)}), 400
 
 @auth_bp.route("/login", methods=["POST"])
+@log_to_postgres(source="/auth/login", service_name="auth_service")
 def login():
     try:
         data = LoginSchema(**request.get_json())
         user = auth_service.login_user(data.email, data.password)
 
         access_token = create_access_token(
-            identity=str(user.id),  # <- sub trebuie să fie string
+            identity=str(user.sk),  # <- sub trebuie să fie string
             additional_claims={
                 "role": str(user.role),
                 "email": str(user.email)
@@ -64,6 +68,7 @@ def login():
 
 @auth_bp.route("/refresh", methods=["POST"])
 @jwt_required(refresh=True)
+@log_to_postgres(source="/auth/refresh", service_name="auth_service")
 def refresh_tokens():
     identity = get_jwt_identity()
     new_access = create_access_token(identity=identity)
@@ -75,7 +80,7 @@ def refresh_tokens():
 
 
 @auth_bp.route("/logout", methods=["POST"])
-@jwt_required()
+@log_to_postgres(source="/auth/logout", service_name="auth_service")
 def logout():
     resp = jsonify(msg="Logged out")
     unset_jwt_cookies(resp)

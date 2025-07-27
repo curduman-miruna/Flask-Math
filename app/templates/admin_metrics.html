@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}Admin Metrics{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" />
+<div class="container mt-5">
+    <h2 class="mb-4">Application Metrics</h2>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h5>Most Requested Routes</h5>
+            <canvas id="requestCountChart" height="250"></canvas>
+        </div>
+        <div class="col-md-6">
+            <h5>Average Response Time (ms)</h5>
+            <canvas id="latencyChart" height="250"></canvas>
+        </div>
+    </div>
+
+    <h4 class="mt-5">All Request Metrics</h4>
+    <div class="table-responsive">
+        <table id="routeTable" class="table table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>Route</th>
+                    <th>Request Count</th>
+                    <th>Avg Latency (ms)</th>
+                </tr>
+            </thead>
+            <tbody id="route-table-body"></tbody>
+        </table>
+    </div>
+
+    <div class="row my-5">
+        <div class="col-md-6">
+            <h5>Memory Usage</h5>
+            <canvas id="memoryChart" height="200" style="max-width:300px;"></canvas>
+        </div>
+        <div class="col-md-6">
+            <h5>Request Methods Distribution</h5>
+            <canvas id="methodChart" height="200" style="max-width:300px;"></canvas>
+        </div>
+    </div>
+
+    <h4 class="mt-5">System Info</h4>
+    <div id="system-metrics" class="mb-4"></div>
+
+    <h4>Garbage Collection</h4>
+    <div id="gc-metrics" class="mb-5"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" defer></script>
+
+<script>
+async function loadMetrics() {
+    const res = await fetch("/web/admin/metrics/json");
+    const metrics = await res.json();
+
+    const durations = metrics.find(m => m.name === "flask_http_request_duration_seconds")?.samples || [];
+    const countMap = {}, sumMap = {}, methodMap = {};
+
+    durations.forEach(s => {
+        const { method, path, status } = s.labels;
+        if (!method || !path || !status || path.includes(".well-known")) return;
+        const key = `${method} ${path} [${status}]`;
+        if (s.name.endsWith("_count")) {
+            countMap[key] = s.value;
+            methodMap[method] = (methodMap[method] || 0) + s.value;
+        }
+        if (s.name.endsWith("_sum")) sumMap[key] = s.value;
+    });
+
+    const routeStats = Object.keys(countMap).map(key => ({
+        route: key,
+        count: countMap[key],
+        avgMs: sumMap[key] ? (sumMap[key] / countMap[key]) * 1000 : 0
+    })).sort((a, b) => b.count - a.count);
+
+    // Chart 1: Request Count
+    new Chart(document.getElementById("requestCountChart"), {
+        type: "bar",
+        data: {
+            labels: routeStats.slice(0, 10).map(r => r.route),
+            datasets: [{
+                label: "Requests",
+                data: routeStats.slice(0, 10).map(r => r.count),
+                backgroundColor: "rgba(33, 133, 208, 0.7)"
+            }]
+        },
+        options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+    });
+
+    // Chart 2: Latency
+    new Chart(document.getElementById("latencyChart"), {
+        type: "bar",
+        data: {
+            labels: routeStats.slice(0, 10).map(r => r.route),
+            datasets: [{
+                label: "Latency (ms)",
+                data: routeStats.slice(0, 10).map(r => r.avgMs.toFixed(1)),
+                backgroundColor: "rgba(253, 185, 19, 0.7)"
+            }]
+        },
+        options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+    });
+
+    // Chart 3: Memory (RAM vs VMS)
+    const rss = metrics.find(m => m.name === "process_resident_memory_bytes")?.samples[0]?.value ?? 0;
+    const vms = metrics.find(m => m.name === "process_virtual_memory_bytes")?.samples[0]?.value ?? 0;
+
+    new Chart(document.getElementById("memoryChart"), {
+        type: "pie",
+        data: {
+            labels: ["RAM (RSS)", "Virtual Memory"],
+            datasets: [{
+                label: "Memory MB",
+                data: [(rss / 1024 / 1024).toFixed(2), (vms / 1024 / 1024).toFixed(2)],
+                backgroundColor: ["#198754", "#6c757d"]
+            }]
+        },
+        options: {
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+
+    // Chart 4: Request methods (GET, POST...)
+    const methods = Object.keys(methodMap);
+    const methodData = methods.map(m => methodMap[m]);
+
+    new Chart(document.getElementById("methodChart"), {
+        type: "pie",
+        data: {
+            labels: methods,
+            datasets: [{
+                label: "Requests by Method",
+                data: methodData,
+                backgroundColor: ["#0d6efd", "#ffc107", "#dc3545", "#20c997", "#6610f2"]
+            }]
+        },
+        options: {
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+
+    // Full route table
+    const tbody = document.getElementById("route-table-body");
+    routeStats.forEach(r => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td><code>${r.route}</code></td>
+            <td>${r.count}</td>
+            <td>${r.avgMs.toFixed(1)}</td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    // Table pagination
+    new simpleDatatables.DataTable("#routeTable", {
+        perPage: 10,
+        perPageSelect: [5, 10, 20, 50],
+        searchable: true,
+        sortable: true
+    });
+
+    // System metrics text
+    const cpu = metrics.find(m => m.name === "process_cpu_seconds")?.samples[0]?.value ?? 0;
+    document.getElementById("system-metrics").innerHTML = `
+        <p><strong>CPU Time:</strong> ${cpu.toFixed(2)} sec</p>
+        <p><strong>RAM (RSS):</strong> ${(rss / 1024 / 1024).toFixed(2)} MB</p>
+        <p><strong>Virtual Memory:</strong> ${(vms / 1024 / 1024).toFixed(2)} MB</p>
+    `;
+
+    // GC
+    const gc = metrics.find(m => m.name === "python_gc_collections")?.samples || [];
+    const gcDiv = document.getElementById("gc-metrics");
+    gc.forEach(s => {
+        const gen = s.labels.generation;
+        const val = s.value;
+        gcDiv.innerHTML += `<p>Gen ${gen}: ${val} collections</p>`;
+    });
+}
+
+window.onload = loadMetrics;
+</script>
+{% endblock %}

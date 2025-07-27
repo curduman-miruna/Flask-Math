@@ -1,9 +1,51 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block content %}
-<div>
-    <h1 class="mb-4">Welcome to the Home Page</h1>
-    <p>This is the landing page for your Flask app with a sidebar layout.</p>
-    <p>From here, you can navigate to the dashboard, analytics, profile, and more.</p>
+<style>
+    .home-wrapper {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: calc(100vh - 4rem);
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .home-text {
+        flex: 1 1 50%;
+        padding: 4rem 4rem 4rem 8rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        backdrop-filter: blur(8px);
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    .home-image {
+        flex: 1 1 50%;
+        height: 500px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-image: url("https://illustrations.popsy.co/teal/app-launch.svg");
+    }
+
+</style>
+<div class="home-wrapper">
+    <div class="home-text">
+        <h1 class="display-4 fw-bold mb-4">Welcome to the Math Microservice</h1>
+        <p class="lead mb-4">Experience the beauty of numbers brought to life — effortlessly compute powers, explore the
+            elegance of Fibonacci, or unravel factorials in a clean, intuitive interface that makes math accessible to
+            everyone.</p>
+        <a href="/web/login" class="btn btn-dark btn-lg">
+            <i class="fas fa-sign-in-alt me-2"></i> Get Started
+        </a>
+    </div>
+    <div class="home-image"></div>
 </div>
 {% endblock %}

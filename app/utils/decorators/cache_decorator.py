@@ -19,6 +19,9 @@ def cache_response(cache_key_func, ttl=3600):
                 data, status = response, 200
 
             result_json = data.get_json()
+            if not result_json or "result" not in result_json:
+                return jsonify({"error": "Invalid response format"}), 500
+
             set_cache(cache_key, result_json["result"], ttl)
 
             return jsonify({"result": result_json["result"], "cached": False}), status

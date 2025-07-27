@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<style>
+    .profile-wrapper {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: calc(100vh - 4rem);
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .profile-content {
+        flex: 1 1 50%;
+        padding: 4rem 4rem 4rem 8rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        backdrop-filter: blur(8px);
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    .profile-image {
+        flex: 1 1 50%;
+        height: 500px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-image: url("https://illustrations.popsy.co/teal/video-call.svg");
+    }
+
+    .profile-field {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-label {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .status-icon {
+        margin-left: 8px;
+        font-size: 1rem;
+    }
+
+    .status-icon.verified {
+        color: green;
+    }
+
+    .status-icon.not-verified {
+        color: #dc2626;
+    }
+
+    .btn-inline {
+        margin-left: 12px;
+        font-size: 0.85rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 8px;
+    }
+
+    .btn-request-admin {
+        margin-top: 2rem;
+        width: fit-content;
+        background-color: #212121;
+        color: white;
+        font-weight: bold;
+        border-radius: 10px;
+        padding: 0.6rem 1.2rem;
+        text-decoration: none;
+    }
+
+    .btn-request-admin:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-request-admin:hover:enabled {
+        background-color: #3B666B;
+    }
+</style>
+
+<div class="profile-wrapper">
+    <div class="profile-content">
+        <h2 class="fw-bold mb-4">My Profile</h2>
+
+        <div class="profile-field">
+            <span class="profile-label">Full Name:</span>
+            <span id="full-name"></span>
+        </div>
+
+        <div class="profile-field">
+            <span class="profile-label">Username:</span>
+            <span id="username"></span>
+        </div>
+
+        <div class="profile-field">
+            <span class="profile-label">Email:</span>
+            <span id="email"></span>
+            <i id="email-status-icon" class="fas status-icon"></i>
+            <button id="verify-email-btn" class="btn btn-outline-secondary btn-sm btn-inline" style="display: none;">
+                Verify
+            </button>
+        </div>
+
+        <div class="profile-field">
+            <span class="profile-label">Phone Number:</span>
+            <span id="phone-number"></span>
+            <i id="phone-status-icon" class="fas status-icon"></i>
+            <button id="verify-phone-btn" class="btn btn-outline-secondary btn-sm btn-inline" style="display: none;">
+                Verify
+            </button>
+        </div>
+
+        <button id="request-admin-btn" class="btn-request-admin" style="display: none;" disabled>
+            <i class="fas fa-user-shield me-2"></i>Request Admin Access
+        </button>
+
+        <div id="verify-required-msg" class="text-muted mt-2" style="display: none;">
+            <i class="fas fa-info-circle me-1 text-info"></i>Verify your email if you want to become an admin.
+        </div>
+    </div>
+
+    <div class="profile-image"></div>
+</div>
+
+<script>
+    async function loadProfile() {
+        try {
+            const res = await fetch("/api/user/me", {
+                method: "GET",
+                credentials: "include"
+            });
+
+            const user = await res.json();
+            if (!res.ok) throw new Error(user.error || "Failed to load");
+
+            window.emailVerified = user.email_verified;
+
+            document.getElementById("full-name").textContent = user.full_name;
+            document.getElementById("username").textContent = user.username;
+            document.getElementById("email").textContent = user.email;
+            document.getElementById("phone-number").textContent = user.phone_number;
+
+            const emailIcon = document.getElementById("email-status-icon");
+            const phoneIcon = document.getElementById("phone-status-icon");
+
+            if (user.email_verified) {
+                emailIcon.classList.add("fa-check-circle", "verified");
+            } else {
+                emailIcon.classList.add("fa-exclamation-circle", "not-verified");
+                document.getElementById("verify-email-btn").style.display = "inline-block";
+            }
+
+            if (user.phone_verified) {
+                phoneIcon.classList.add("fa-check-circle", "verified");
+            } else {
+                phoneIcon.classList.add("fa-exclamation-circle", "not-verified");
+                document.getElementById("verify-phone-btn").style.display = "inline-block";
+            }
+
+            await checkUserRole(user.email_verified)
+
+        } catch (err) {
+            alert(err.message || "Error loading profile");
+        }
+    }
+
+    async function checkUserRole(emailVerified) {
+        try {
+            const roleRes = await fetch("/api/user/me/role", {
+                method: "GET",
+                credentials: "include"
+            });
+
+            const roleData = await roleRes.json();
+            if (!roleRes.ok) throw new Error(roleData.error || "Role fetch failed");
+
+            const role = roleData.role;
+            const requestBtn = document.getElementById("request-admin-btn");
+            const requestText = document.getElementById("request-admin-text");
+            const infoText = document.getElementById("verify-required-msg");
+
+            if (role === "admin" || role === "superadmin") return;
+
+            requestBtn.style.display = "inline-block";
+
+            if (!emailVerified) {
+                requestBtn.disabled = true;
+                infoText.style.display = "block";
+                return;
+            }
+
+            // verificăm dacă există deja o cerere
+            const reqRes = await fetch("/api/admin_request/user_request", {
+                method: "GET",
+                credentials: "include"
+            });
+
+            if (reqRes.ok) {
+                const reqData = await reqRes.json();
+                const status = (reqData.status || "").toUpperCase();
+                const label = {
+                    PENDING: "Pending",
+                    APPROVED: "Approved",
+                    REJECTED: "Rejected"
+                }[status] || "Unknown";
+
+                if (label !== "Unknown") {
+                    requestBtn.textContent = `Request Status: ${label}`;
+                } else {
+                    console.warn("Missing #request-admin-text element in DOM");
+                }
+
+                requestBtn.disabled = true;
+            }
+
+
+        } catch (err) {
+            console.warn("Failed to check role or request:", err.message);
+        }
+    }
+
+
+    document.getElementById("verify-email-btn").addEventListener("click", () => {
+        const email = document.getElementById("email").textContent.trim();
+
+        showModal({
+            title: "Verify Email",
+            message: `
+                <p>A verification code will be sent to your email.</p>
+                <div id="verification-input" style="display:none;">
+                    <input type="text" id="email-verification-code" class="form-control my-3" placeholder="Enter code here" />
+                </div>
+            `,
+            buttons: [
+                {
+                    text: "Send Code",
+                    variant: "primary",
+                    onClick: async () => {
+                        try {
+                            const res = await fetch("/api/email/send-verification", {
+                                method: "POST",
+                                headers: {"Content-Type": "application/json"},
+                                credentials: "include",
+                                body: JSON.stringify({email})
+                            });
+
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error || "Failed to send code");
+
+                            document.getElementById("verification-input").style.display = "block";
+
+                            const footer = document.getElementById("globalModalFooter");
+                            footer.innerHTML = "";
+
+                            const verifyBtn = document.createElement("button");
+                            verifyBtn.className = "btn btn-success";
+                            verifyBtn.textContent = "Submit Code";
+                            verifyBtn.onclick = async () => {
+                                const code = document.getElementById("email-verification-code").value.trim();
+                                if (!code) return;
+
+                                const verifyRes = await fetch("/api/email/verify-code", {
+                                    method: "POST",
+                                    headers: {"Content-Type": "application/json"},
+                                    credentials: "include",
+                                    body: JSON.stringify({email, code})
+                                });
+
+                                const result = await verifyRes.json();
+
+                                if (verifyRes.ok) {
+                                    showModal({
+                                        title: "Verified ✅",
+                                        message: "Email successfully verified!",
+                                        buttons: [{text: "OK", variant: "primary", dismiss: true}]
+                                    });
+                                    setTimeout(() => window.location.reload(), 1000);
+                                } else {
+                                    showModal({
+                                        title: "Invalid Code",
+                                        message: result.error || "Verification failed.",
+                                        buttons: [{text: "Close", variant: "danger", dismiss: true}]
+                                    });
+                                }
+                            };
+                            footer.appendChild(verifyBtn);
+
+                            const cancelBtn = document.createElement("button");
+                            cancelBtn.className = "btn btn-secondary";
+                            cancelBtn.setAttribute("data-bs-dismiss", "modal");
+                            cancelBtn.textContent = "Cancel";
+                            footer.appendChild(cancelBtn);
+
+                        } catch (err) {
+                            showModal({
+                                title: "Error",
+                                message: err.message || "Failed to send verification email.",
+                                buttons: [{text: "Close", variant: "danger", dismiss: true}]
+                            });
+                        }
+                    }
+                },
+                {text: "Cancel", variant: "secondary", dismiss: true}
+            ]
+        });
+    });
+
+    document.getElementById("verify-phone-btn").addEventListener("click", () => {
+        showModal({
+            title: "Verify Phone",
+            message: "A verification code will be sent to your phone number.",
+            buttons: [
+                {text: "Send SMS", variant: "success", dismiss: true},
+                {text: "Cancel", variant: "secondary", dismiss: true}
+            ]
+        });
+    });
+
+    document.getElementById("request-admin-btn").addEventListener("click", () => {
+        const btn = document.getElementById("request-admin-btn");
+        if (btn.disabled) return;
+
+        showModal({
+            title: "Request Admin Access",
+            message: "Do you want to request admin rights?",
+            buttons: [
+                {
+                    text: "Request",
+                    variant: "primary",
+                    onClick: async () => {
+                        try {
+                            const res = await fetch("/api/admin_request/request", {
+                                method: "POST",
+                                headers: {"Content-Type": "application/json"},
+                                credentials: "include"
+                            });
+
+                            const data = await res.json();
+                            if (res.ok) {
+                                showModal({
+                                    title: "Request Sent",
+                                    message: "Your request has been submitted for review.",
+                                    buttons: [{text: "OK", variant: "success", dismiss: true}]
+                                });
+
+                                // Optional: disable button after success
+                                btn.disabled = true;
+                                btn.textContent = "Request Pending";
+
+                            } else {
+                                showModal({
+                                    title: "Already Requested",
+                                    message: data.error || "You already submitted a request.",
+                                    buttons: [{text: "Close", variant: "warning", dismiss: true}]
+                                });
+                            }
+
+                        } catch (err) {
+                            showModal({
+                                title: "Error",
+                                message: err.message || "Failed to submit request.",
+                                buttons: [{text: "Close", variant: "danger", dismiss: true}]
+                            });
+                        }
+                    }
+                },
+                {text: "Cancel", variant: "secondary", dismiss: true}
+            ]
+        });
+    });
+
+
+    window.onload = () => {
+        loadProfile();
+    };
+</script>
+{% endblock %}

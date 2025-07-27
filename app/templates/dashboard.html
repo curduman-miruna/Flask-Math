@@ -1,129 +1,144 @@
 {% extends "base.html" %}
 {% block title %}Math Dashboard{% endblock %}
 {% block content %}
-<div class="container mt-5">
-  <h2 class="mb-4">Math Operations Dashboard</h2>
+<style>
+    .dashboard-wrapper {
+        max-width: 800px;
+        margin: 3rem auto;
+    }
 
-  <!-- Power -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <h5>Power (xⁿ)</h5>
-      <div class="row g-2">
-        <div class="col-md-3">
-          <input type="number" id="pow-base" class="form-control" placeholder="Base">
-        </div>
-        <div class="col-md-3">
-          <input type="number" id="pow-exp" class="form-control" placeholder="Exponent">
-        </div>
-        <div class="col-md-3">
-          <button class="btn btn-dark w-100" onclick="callPower()">Compute</button>
-        </div>
-        <div class="col-md-3">
-          <p id="pow-result" class="mt-2 text-primary"></p>
-        </div>
-      </div>
-    </div>
-  </div>
+    .card h5 {
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
 
-  <!-- Fibonacci -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <h5>Fibonacci (n-th term)</h5>
-      <div class="row g-2">
-        <div class="col-md-3">
-          <input type="number" id="fib-n" class="form-control" placeholder="n">
-        </div>
-        <div class="col-md-3">
-          <button class="btn btn-dark w-100" onclick="callFibonacci()">Compute</button>
-        </div>
-        <div class="col-md-6">
-          <p id="fib-result" class="mt-2 text-primary"></p>
-        </div>
-      </div>
-    </div>
-  </div>
+    .result-box {
+        font-family: monospace;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+        background-color: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        color: #212529;
+    }
+</style>
 
-  <!-- Factorial -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <h5>Factorial (n!)</h5>
-      <div class="row g-2">
-        <div class="col-md-3">
-          <input type="number" id="fact-n" class="form-control" placeholder="n">
+<div class="dashboard-wrapper">
+    <h2 class="mb-4 text-center">Math Operations Dashboard</h2>
+
+    <!-- Power -->
+    <div class="card mb-4">
+        <div class="card-body d-flex flex-column">
+            <h5>Power (xⁿ)</h5>
+            <div class="mb-3 d-flex gap-2 flex-wrap">
+                <input type="number" id="pow-base" class="form-control" placeholder="Base" style="max-width: 180px;">
+                <input type="number" id="pow-exp" class="form-control" placeholder="Exponent" style="max-width: 180px;">
+                <button class="btn btn-dark" onclick="callPower()">Compute</button>
+            </div>
+            <div id="pow-result" class="result-box d-none"></div>
         </div>
-        <div class="col-md-3">
-          <button class="btn btn-dark w-100" onclick="callFactorial()">Compute</button>
-        </div>
-        <div class="col-md-6">
-          <p id="fact-result" class="mt-2 text-primary"></p>
-        </div>
-      </div>
     </div>
-  </div>
+
+    <!-- Fibonacci -->
+    <div class="card mb-4">
+        <div class="card-body d-flex flex-column">
+            <h5>Fibonacci (n-th term)</h5>
+            <div class="mb-3 d-flex gap-2 flex-wrap">
+                <input type="number" id="fib-n" class="form-control" placeholder="n" style="max-width: 180px;">
+                <button class="btn btn-dark" onclick="callFibonacci()">Compute</button>
+            </div>
+            <div id="fib-result" class="result-box d-none"></div>
+        </div>
+    </div>
+
+    <!-- Factorial -->
+    <div class="card mb-4">
+        <div class="card-body d-flex flex-column">
+            <h5>Factorial (n!)</h5>
+            <div class="mb-3 d-flex gap-2 flex-wrap">
+                <input type="number" id="fact-n" class="form-control" placeholder="n" style="max-width: 180px;">
+                <button class="btn btn-dark" onclick="callFactorial()">Compute</button>
+            </div>
+            <div id="fact-result" class="result-box d-none"></div>
+        </div>
+    </div>
 </div>
 
 <script>
-  async function callPower() {
-    const baseRaw = document.getElementById("pow-base").value;
-    const expRaw = document.getElementById("pow-exp").value;
-    const base = Number(baseRaw);
-    const exponent = Number(expRaw);
-
-    if (isNaN(base) || isNaN(exponent)) {
-      document.getElementById("pow-result").innerText = "Invalid input.";
-      return;
+    function showResult(elementId, resultText) {
+        const el = document.getElementById(elementId);
+        el.textContent = resultText; // display full result as-is
+        el.classList.remove("d-none");
     }
 
-    const res = await fetch("/api/math/pow", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ base, exponent }),
-      credentials: "include"
-    });
+    async function callPower() {
+        const base = document.getElementById("pow-base").value;
+        const exponent = document.getElementById("pow-exp").value;
 
-    const data = await res.json();
-    document.getElementById("pow-result").innerText = data.result !== undefined ? `Result: ${data.result}` : `Error: ${data.error}`;
-  }
+        if (base === "" || exponent === "") {
+            showResult("pow-result", "Please enter both base and exponent.");
+            return;
+        }
 
-  async function callFibonacci() {
-    const nRaw = document.getElementById("fib-n").value;
-    const n = Number(nRaw);
+        const res = await fetch("/api/math/pow", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ base: Number(base), exponent: Number(exponent) }),
+            credentials: "include"
+        });
 
-    if (isNaN(n)) {
-      document.getElementById("fib-result").innerText = "Invalid input.";
-      return;
+        const data = await res.json();
+        const value = data.result !== undefined
+            ? data.result.toString()
+            : `Error: ${data.error || "Unknown error"}`;
+        showResult("pow-result", `Result:\n${value}`);
     }
 
-    const res = await fetch("/api/math/fibonacci", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ n }),
-      credentials: "include"
-    });
+    async function callFibonacci() {
+        const n = document.getElementById("fib-n").value;
 
-    const data = await res.json();
-    document.getElementById("fib-result").innerText = data.result !== undefined ? `Result: ${data.result}` : `Error: ${data.error}`;
-  }
+        if (n === "") {
+            showResult("fib-result", "Please enter a valid number.");
+            return;
+        }
 
-  async function callFactorial() {
-    const nRaw = document.getElementById("fact-n").value;
-    const n = Number(nRaw);
+        const res = await fetch("/api/math/fibonacci", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ n: Number(n) }),
+            credentials: "include"
+        });
 
-    if (isNaN(n)) {
-      document.getElementById("fact-result").innerText = "Invalid input.";
-      return;
+        const data = await res.json();
+        const value = data.result !== undefined
+            ? data.result.toString()
+            : `Error: ${data.error || "Unknown error"}`;
+        showResult("fib-result", `Result:\n${value}`);
     }
 
-    const res = await fetch("/api/math/factorial", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ n }),
-      credentials: "include"
-    });
+    async function callFactorial() {
+        const n = document.getElementById("fact-n").value;
 
-    const data = await res.json();
-    document.getElementById("fact-result").innerText = data.result !== undefined ? `Result: ${data.result}` : `Error: ${data.error}`;
-  }
+        if (n === "") {
+            showResult("fact-result", "Please enter a valid number.");
+            return;
+        }
+
+        const res = await fetch("/api/math/factorial", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ n: Number(n) }),
+            credentials: "include"
+        });
+
+        const data = await res.json();
+        const value = data.result !== undefined
+            ? data.result.toString()
+            : `Error: ${data.error || "Unknown error"}`;
+        showResult("fact-result", `Result:\n${value}`);
+    }
 </script>
 
 {% endblock %}
