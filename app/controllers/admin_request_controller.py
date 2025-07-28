@@ -1,10 +1,11 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.services import admin_request_service, user_service
+from app.services import admin_request_service
 from app.utils.decorators.log_decorator import log_to_postgres
 from app.utils.decorators.role_required import role_required
 
 admin_req_bp = Blueprint("admin_request", __name__)
+
 
 @admin_req_bp.route("/request", methods=["POST"])
 @log_to_postgres(source="/admin_request/request", service_name="admin_request_service")
@@ -18,6 +19,7 @@ async def request_admin():
     except ValueError as ve:
         return jsonify({"error": str(ve)}), 400
 
+
 @admin_req_bp.route("/all", methods=["GET"])
 @role_required(["superadmin"])
 @jwt_required()
@@ -25,8 +27,11 @@ async def list_requests():
     result = admin_request_service.get_all_requests()
     return jsonify(result), 200
 
+
 @admin_req_bp.route("/resolve/<int:request_id>", methods=["POST"])
-@log_to_postgres(source="/admin_request/resolve_request", service_name="admin_request_service")
+@log_to_postgres(
+    source="/admin_request/resolve_request", service_name="admin_request_service"
+)
 @role_required(["superadmin"])
 @jwt_required()
 async def resolve_admin_request(request_id):

@@ -9,6 +9,7 @@ import random
 email_bp = Blueprint("email", __name__)
 VERIFICATION_TTL_SECONDS = 10 * 60  # 15 minutes
 
+
 @email_bp.route("/send-verification", methods=["POST"])
 @log_to_postgres(source="/email/send-verification", service_name="email_service")
 @jwt_required()
@@ -24,11 +25,12 @@ async def send_verification():
     redis_key = f"verify:{email}"
     set_cache(redis_key, code, VERIFICATION_TTL_SECONDS)
 
-    sent,error = send_verification_email(email, code)
+    sent, error = send_verification_email(email, code)
     if sent:
         return jsonify({"message": "Verification code sent"}), 200
     else:
         return jsonify({"error": error}), 500
+
 
 @email_bp.route("/verify-code", methods=["POST"])
 @log_to_postgres(source="/email/verify-code", service_name="email_service")

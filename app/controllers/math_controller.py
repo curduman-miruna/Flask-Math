@@ -6,12 +6,12 @@ from app.services.math_service import power, fibonacci, factorial
 from app.utils.decorators.cache_decorator import cache_response
 from app.schemas.math_schema import PowerInput, FibonacciInput, FactorialInput
 
-math_bp = Blueprint('math', __name__, url_prefix='/api/math')
+math_bp = Blueprint("math", __name__, url_prefix="/api/math")
 
 
 @math_bp.route("/pow", methods=["POST"])
 @cache_response(lambda req: f"pow:{req.json.get('base')}:{req.json.get('exponent')}")
-@log_to_postgres(source="/math/pow",service_name="math_service")
+@log_to_postgres(source="/math/pow", service_name="math_service")
 @jwt_required()
 def pow_endpoint():
     try:
@@ -41,7 +41,7 @@ def fibonacci_endpoint():
 
 @math_bp.route("/factorial", methods=["POST"])
 @cache_response(lambda req: f"fact:{req.json.get('n')}")
-@log_to_postgres(source="math/factorial/",service_name="math_service")
+@log_to_postgres(source="math/factorial/", service_name="math_service")
 @jwt_required()
 def factorial_endpoint():
     try:
