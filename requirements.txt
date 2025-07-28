@@ -55,3 +55,4 @@ typing_extensions~=4.13.0
 mailtrap~=2.1.0
 prometheus_flask_exporter~=0.23.2
 prometheus_client~=0.22.1
+flask[async]

@@ -1,8 +1,9 @@
-from flask import Flask
+from datetime import datetime, timezone, timedelta
+from flask import Flask, redirect, url_for
 from app.database import init_db
 from app.controllers.auth_controller import auth_bp
 import os
-from flask_jwt_extended import JWTManager, get_jwt
+from flask_jwt_extended import JWTManager, get_jwt, create_access_token, set_access_cookies, get_jwt_identity
 from flask_jwt_extended.view_decorators import verify_jwt_in_request
 from app.models import user, admin_request, log_event
 from app.controllers.web_controller import web_bp

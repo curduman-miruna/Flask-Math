@@ -1,3 +1,4 @@
+from datetime import timedelta
 from flask import Blueprint, request, jsonify
 from app.services import auth_service
 from flask_jwt_extended import (
@@ -13,7 +14,7 @@ auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/register", methods=["POST"])
 @log_to_postgres(source="/auth/register" ,service_name="auth_service")
-def register():
+async def register():
     try:
         data = RegisterSchema(**request.get_json())
         user = auth_service.register_user(
@@ -37,11 +38,12 @@ def login():
         user = auth_service.login_user(data.email, data.password)
 
         access_token = create_access_token(
-            identity=str(user.sk),  # <- sub trebuie să fie string
+            identity=str(user.sk),
             additional_claims={
                 "role": str(user.role),
                 "email": str(user.email)
-            }
+            },
+            expires_delta=timedelta(minutes=30)
         )
 
         refresh_token = create_refresh_token(identity=str(user.id))

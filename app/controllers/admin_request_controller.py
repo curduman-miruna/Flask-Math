@@ -10,7 +10,7 @@ admin_req_bp = Blueprint("admin_request", __name__)
 @log_to_postgres(source="/admin_request/request", service_name="admin_request_service")
 @role_required(["user"])
 @jwt_required()
-def request_admin():
+async def request_admin():
     user_id = get_jwt_identity()
     try:
         result = admin_request_service.create_admin_request(user_id)
@@ -21,7 +21,7 @@ def request_admin():
 @admin_req_bp.route("/all", methods=["GET"])
 @role_required(["superadmin"])
 @jwt_required()
-def list_requests():
+async def list_requests():
     result = admin_request_service.get_all_requests()
     return jsonify(result), 200
 
@@ -29,7 +29,7 @@ def list_requests():
 @log_to_postgres(source="/admin_request/resolve_request", service_name="admin_request_service")
 @role_required(["superadmin"])
 @jwt_required()
-def resolve_admin_request(request_id):
+async def resolve_admin_request(request_id):
     data = request.get_json()
     approve = data.get("approve")  # boolean
     try:
@@ -43,7 +43,7 @@ def resolve_admin_request(request_id):
 @log_to_postgres(source="/admin_request/request", service_name="admin_request_service")
 @role_required(["user"])
 @jwt_required()
-def get_user_request():
+async def get_user_request():
     user_id = get_jwt_identity()
     try:
         request_data = admin_request_service.get_user_request(user_id)

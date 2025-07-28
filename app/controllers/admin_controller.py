@@ -1,10 +1,12 @@
 from flask import Blueprint, render_template
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, verify_jwt_in_request, unset_jwt_cookies
 from flask import Response
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, REGISTRY
 from app.utils.decorators.role_required import role_required
 from app.services.admin_service import get_admin_metrics
 from flask import jsonify
+from flask import redirect, url_for
+from flask import request
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/web/admin")
 
@@ -13,6 +15,11 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/web/admin")
 @role_required(["admin", "superadmin"])
 @jwt_required()
 def metrics_page():
+    try:
+        verify_jwt_in_request()
+    except Exception:
+        unset_jwt_cookies("Token expired")
+        return redirect(url_for("web.login"))
     return render_template("admin_metrics.html")
 
 @admin_bp.route("/metrics/raw")

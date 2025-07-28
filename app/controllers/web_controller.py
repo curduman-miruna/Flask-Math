@@ -15,12 +15,6 @@ def register():
 @log_to_postgres(source="/web/dashboard", service_name="N/A")
 @jwt_required(optional=True)
 def dashboard():
-    from flask_jwt_extended import verify_jwt_in_request, get_jwt
-    from flask import redirect, url_for
-    try:
-        verify_jwt_in_request()
-    except Exception:
-        return redirect(url_for("web.home"))
     return render_template("dashboard.html")
 
 @web_bp.route("/", methods=["GET"])
@@ -30,16 +24,8 @@ def home():
 
 @web_bp.route("/profile", methods=["GET"])
 @log_to_postgres(source="/web/profile", service_name="N/A")
-@jwt_required(optional=True)
+@jwt_required()
 def profile():
-    from flask_jwt_extended import verify_jwt_in_request, get_jwt
-    from flask import redirect, url_for
-    try:
-        verify_jwt_in_request()
-    except Exception:
-        return redirect(url_for("web.home"))
     return render_template("profile.html")
-
-
 
 

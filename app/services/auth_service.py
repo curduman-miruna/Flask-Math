@@ -11,7 +11,7 @@ def generate_tokens(user):
         "username": user["username"],
         "role": user["role"]
     }
-    access_token = create_access_token(identity=identity, expires_delta=timedelta(minutes=30))
+    access_token = create_access_token(identity=identity, expires_delta=timedelta(minutes=2))
     refresh_token = create_refresh_token(identity=identity)
     return {
         "access_token": access_token,

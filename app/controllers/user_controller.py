@@ -8,7 +8,7 @@ user_bp = Blueprint("user", __name__)
 @user_bp.route("/me", methods=["GET"])
 @log_to_postgres(source="/user/me", service_name="user_service")
 @jwt_required()
-def get_profile():
+async def get_profile():
     user_id = get_jwt_identity()
     claims = get_jwt()
     email = claims.get("email")
@@ -21,7 +21,7 @@ def get_profile():
 @user_bp.route("/me/role", methods=["GET"])
 @log_to_postgres(source="/user/me/role", service_name="user_service")
 @jwt_required()
-def get_user_role():
+async def get_user_role():
     claims = get_jwt()
     role = claims.get("role")
     if not role:

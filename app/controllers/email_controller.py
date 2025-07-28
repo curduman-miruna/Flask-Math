@@ -12,7 +12,7 @@ VERIFICATION_TTL_SECONDS = 10 * 60  # 15 minutes
 @email_bp.route("/send-verification", methods=["POST"])
 @log_to_postgres(source="/email/send-verification", service_name="email_service")
 @jwt_required()
-def send_verification():
+async def send_verification():
     data = request.get_json()
     email = data.get("email")
 
@@ -33,7 +33,7 @@ def send_verification():
 @email_bp.route("/verify-code", methods=["POST"])
 @log_to_postgres(source="/email/verify-code", service_name="email_service")
 @jwt_required()
-def verify_code():
+async def verify_code():
     data = request.get_json()
     email = data.get("email")
     code = data.get("code")
