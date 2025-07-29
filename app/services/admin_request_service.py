@@ -7,7 +7,9 @@ from app.utils.log_to_redis import log_to_redis
 def create_admin_request(user_id):
     existing = AdminRequest.query.filter_by(user_id=user_id, status="PENDING").first()
     if existing:
-        log_to_redis(level="ERROR", message=f"User {user_id} already has a pending request.")
+        log_to_redis(
+            level="ERROR", message=f"User {user_id} already has a pending request."
+        )
         raise ValueError("You already have a pending request.")
 
     new_request = AdminRequest(user_id=user_id)
@@ -27,7 +29,9 @@ def get_all_requests():
 def get_user_request(user_id):
     request = AdminRequest.query.filter_by(user_id=user_id).first()
     if not request:
-        log_to_redis(level="ERROR", message=f"No pending request found for user {user_id}.")
+        log_to_redis(
+            level="ERROR", message=f"No pending request found for user {user_id}."
+        )
         return None
     log_to_redis(level="INFO", message=f"Request found for user {user_id}.")
     return request.to_dict()

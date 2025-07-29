@@ -44,6 +44,7 @@ def mark_phone_verified(user_id):
     db.session.commit()
     return user
 
+
 def update_user_profile(email, **kwargs):
     current_user = get_current_user_by_email(email)
     if not current_user:
@@ -75,5 +76,3 @@ def update_user_profile(email, **kwargs):
     except SQLAlchemyError:
         db.session.rollback()
         return None
-
-

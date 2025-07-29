@@ -21,7 +21,9 @@ def metrics_page():
         verify_jwt_in_request()
     except Exception:
         unset_jwt_cookies("Token expired")
-        log_to_redis(level="WARNING", message="JWT verification failed, redirecting to login")
+        log_to_redis(
+            level="WARNING", message="JWT verification failed, redirecting to login"
+        )
         return redirect(url_for("web.login"))
     return render_template("admin_metrics.html")
 
@@ -53,6 +55,7 @@ def metrics_json():
 def admin_requests():
     try:
         from app.services.admin_request_service import get_all_requests
+
         requests = get_all_requests()
         log_to_redis(level="INFO", message="Fetched all admin requests")
         return render_template("admin_requests.html", requests=requests)

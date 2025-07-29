@@ -1,6 +1,7 @@
 import gmpy2
 from gmpy2 import mpz
 
+
 def power(base, exponent):
     try:
         base = mpz(base)

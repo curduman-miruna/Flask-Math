@@ -13,7 +13,9 @@ from app.controllers.admin_request_controller import admin_req_bp
 from prometheus_flask_exporter import PrometheusMetrics
 from app.email_extension import mail
 import sys
+
 sys.set_int_max_str_digits(0)
+
 
 def create_app():
     app = Flask(__name__)

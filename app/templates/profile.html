@@ -121,19 +121,19 @@
             if (reqRes.ok) {
                 const reqData = await reqRes.json();
                 console.log("Request data:", reqData);
+
                 if (reqData.exists) {
                     const normalized = reqData.request.status.toUpperCase();
+                    let label = "Pending";  // fallback default
                     if (["PENDING", "APPROVED", "REJECTED"].includes(normalized)) {
-                        label = normalized.charAt(0) + normalized.slice(1).toLowerCase();  // ex: PENDING → Pending
+                        label = normalized.charAt(0) + normalized.slice(1).toLowerCase();
                     }
-                }
-                requestBtn.textContent = `Request Status: ${label}`;
-                requestBtn.disabled = true;
-
+                    requestBtn.textContent = `Request Status: ${label}`;
+                    requestBtn.disabled = true;
                 } else {
-                    // NU există cerere + userul este email_verified ⇒ putem activa butonul
                     requestBtn.disabled = false;
                     requestBtn.textContent = "Request Admin Access";
+                }
             }
 
         } catch (err) {
@@ -159,64 +159,40 @@
                     variant: "primary",
                     onClick: async () => {
                         try {
-                            const res = await fetch("/api/email/send-verification", {
+                            const res = await fetch("/api/admin_request/request", {
                                 method: "POST",
                                 headers: {"Content-Type": "application/json"},
-                                credentials: "include",
-                                body: JSON.stringify({email})
+                                credentials: "include"
                             });
 
                             const data = await res.json();
-                            if (!res.ok) throw new Error(data.error || "Failed to send code");
 
-                            document.getElementById("verification-input").style.display = "block";
+                            // Închide modalul anterior (Request Admin Access)
+                            closeModal();
 
-                            const footer = document.getElementById("globalModalFooter");
-                            footer.innerHTML = "";
-
-                            const verifyBtn = document.createElement("button");
-                            verifyBtn.className = "btn btn-success";
-                            verifyBtn.textContent = "Submit Code";
-                            verifyBtn.onclick = async () => {
-                                const code = document.getElementById("email-verification-code").value.trim();
-                                if (!code) return;
-
-                                const verifyRes = await fetch("/api/email/verify-code", {
-                                    method: "POST",
-                                    headers: {"Content-Type": "application/json"},
-                                    credentials: "include",
-                                    body: JSON.stringify({email, code})
+                            if (res.ok) {
+                                showModal({
+                                    title: "Request Sent",
+                                    message: "Your request has been submitted for review.",
+                                    buttons: [{text: "OK", variant: "success", dismiss: true}]
                                 });
 
-                                const result = await verifyRes.json();
+                                btn.disabled = true;
+                                btn.textContent = "Request Pending";
 
-                                if (verifyRes.ok) {
-                                    showModal({
-                                        title: "Verified ✅",
-                                        message: "Email successfully verified!",
-                                        buttons: [{text: "OK", variant: "primary", dismiss: true}]
-                                    });
-                                    setTimeout(() => window.location.reload(), 1000);
-                                } else {
-                                    showModal({
-                                        title: "Invalid Code",
-                                        message: result.error || "Verification failed.",
-                                        buttons: [{text: "Close", variant: "danger", dismiss: true}]
-                                    });
-                                }
-                            };
-                            footer.appendChild(verifyBtn);
-
-                            const cancelBtn = document.createElement("button");
-                            cancelBtn.className = "btn btn-secondary";
-                            cancelBtn.setAttribute("data-bs-dismiss", "modal");
-                            cancelBtn.textContent = "Cancel";
-                            footer.appendChild(cancelBtn);
+                            } else {
+                                showModal({
+                                    title: "Already Requested",
+                                    message: data.error || "You already submitted a request.",
+                                    buttons: [{text: "Close", variant: "warning", dismiss: true}]
+                                });
+                            }
 
                         } catch (err) {
+                            closeModal();  // important!
                             showModal({
                                 title: "Error",
-                                message: err.message || "Failed to send verification email.",
+                                message: err.message || "Failed to submit request.",
                                 buttons: [{text: "Close", variant: "danger", dismiss: true}]
                             });
                         }
@@ -258,6 +234,10 @@
                             });
 
                             const data = await res.json();
+
+                            // ✅ Închide modalul "Request Admin Access"
+                            closeModal();
+
                             if (res.ok) {
                                 showModal({
                                     title: "Request Sent",
@@ -265,10 +245,8 @@
                                     buttons: [{text: "OK", variant: "success", dismiss: true}]
                                 });
 
-                                // Optional: disable button after success
                                 btn.disabled = true;
                                 btn.textContent = "Request Pending";
-
                             } else {
                                 showModal({
                                     title: "Already Requested",
@@ -278,6 +256,7 @@
                             }
 
                         } catch (err) {
+                            closeModal();
                             showModal({
                                 title: "Error",
                                 message: err.message || "Failed to submit request.",

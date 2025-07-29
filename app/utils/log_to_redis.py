@@ -13,6 +13,6 @@ def log_to_redis(level, message, extra=None):
         "level": level,
         "message": message,
         "extra": extra or {},
-        "timestamp": redis_client.time()[0]
+        "timestamp": redis_client.time()[0],
     }
     redis_client.rpush(f"{level}-{redis_client.time()[0]}", json.dumps(log_entry))

@@ -71,7 +71,6 @@ def login():
         log_to_redis(level="ERROR", message=f"Login error: {str(ve)}")
         return jsonify({"error": str(ve)}), 401
 
-
     except Exception as e:
         log_to_redis(level="ERROR", message=f"Unexpected error: {str(e)}")
         return jsonify({"error": str(e)}), 500

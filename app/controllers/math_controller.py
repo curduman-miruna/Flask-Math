@@ -1,4 +1,3 @@
-import decimal
 from gmpy2 import mpfr
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
@@ -21,13 +20,14 @@ def pow_endpoint():
         data = PowerInput(**request.get_json())
         result = power(data.base, data.exponent)
 
-        log_to_redis(level="INFO", message=f"Power calculation: {data.base}^{data.exponent} = {result}")
+        log_to_redis(
+            level="INFO",
+            message=f"Power calculation: {data.base}^{data.exponent} = {result}",
+        )
         val_string = result.__str__()
         val_scientific_str = mpfr(result, precision=10).__str__()
-        result = { "string": val_string, "scientific": val_scientific_str }
-        return jsonify({
-            "result": result
-        }), 200
+        result = {"string": val_string, "scientific": val_scientific_str}
+        return jsonify({"result": result}), 200
 
     except ValidationError as ve:
         log_to_redis(level="ERROR", message=f"Validation error: {ve.errors()}")
@@ -46,20 +46,24 @@ def fibonacci_endpoint():
     try:
         data = FibonacciInput(**request.get_json())
         result = fibonacci(data.n)
-        log_to_redis(level="INFO", message=f"Fibonacci calculation for n={data.n}: {result}")
+        log_to_redis(
+            level="INFO", message=f"Fibonacci calculation for n={data.n}: {result}"
+        )
 
         if result > 2**31 - 1:
-            log_to_redis(level="WARNING", message=f"Fibonacci result for n={data.n} exceeds int limit")
+            log_to_redis(
+                level="WARNING",
+                message=f"Fibonacci result for n={data.n} exceeds int limit",
+            )
         val_string = result.__str__()
         val_scientific_str = mpfr(result, precision=10).__str__()
-        result = { "string": val_string, "scientific": val_scientific_str }
-        return jsonify({
-            "result": result
-        }), 200
+        result = {"string": val_string, "scientific": val_scientific_str}
+        return jsonify({"result": result}), 200
     except ValidationError as ve:
         return jsonify({"validation_error": ve.errors()}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
 
 @math_bp.route("/factorial", methods=["POST"])
 @cache_response(lambda req: f"fact:{req.json.get('n')}")
@@ -70,13 +74,13 @@ def factorial_endpoint():
         data = FactorialInput(**request.get_json())
         result = factorial(data.n)
 
-        log_to_redis(level="INFO", message=f"Factorial calculation for n={data.n}: {result}")
+        log_to_redis(
+            level="INFO", message=f"Factorial calculation for n={data.n}: {result}"
+        )
         val_string = result.__str__()
         val_scientific_str = mpfr(result, precision=10).__str__()
-        result = { "string": val_string, "scientific": val_scientific_str }
-        return jsonify({
-            "result": result
-        }), 200
+        result = {"string": val_string, "scientific": val_scientific_str}
+        return jsonify({"result": result}), 200
 
     except ValidationError as ve:
         log_to_redis(level="ERROR", message=f"Validation error: {ve.errors()}")

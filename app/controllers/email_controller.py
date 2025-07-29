@@ -32,7 +32,9 @@ async def send_verification():
         log_to_redis(level="INFO", message=f"Verification email sent to {email}")
         return jsonify({"message": "Verification code sent"}), 200
     else:
-        log_to_redis(level="ERROR", message=f"Failed to send verification email: {error}")
+        log_to_redis(
+            level="ERROR", message=f"Failed to send verification email: {error}"
+        )
         return jsonify({"error": error}), 500
 
 
@@ -45,14 +47,19 @@ async def verify_code():
     code = data.get("code")
 
     if not email or not code:
-        log_to_redis(level="ERROR", message="Missing email or code in verification request")
+        log_to_redis(
+            level="ERROR", message="Missing email or code in verification request"
+        )
         return jsonify({"error": "Missing email or code"}), 400
 
     redis_key = f"verify:{email}"
     stored_code = get_cache(redis_key)
 
     if stored_code is None:
-        log_to_redis(level="WARNING", message=f"Verification code for {email} not found or expired")
+        log_to_redis(
+            level="WARNING",
+            message=f"Verification code for {email} not found or expired",
+        )
         return jsonify({"error": "Code expired or not found"}), 400
 
     if stored_code != code:
