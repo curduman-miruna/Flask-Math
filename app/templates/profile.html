@@ -123,176 +123,178 @@
                 console.log("Request data:", reqData);
                 if (reqData.exists) {
                     const normalized = reqData.request.status.toUpperCase();
+                    let label = "Pending";  // default
                     if (["PENDING", "APPROVED", "REJECTED"].includes(normalized)) {
-                        label = normalized.charAt(0) + normalized.slice(1).toLowerCase();  // ex: PENDING → Pending
+                        label = normalized.charAt(0) + normalized.slice(1).toLowerCase();
                     }
-                }
-                else {
+                    requestBtn.textContent = `Request Status: ${label}`;
+                    requestBtn.disabled = true;
+                } else {
                     requestBtn.disabled = false;
                     requestBtn.textContent = "Request Admin Access";
                 }
-                requestBtn.textContent = `Request Status: ${label}`;
-                requestBtn.disabled = true;
-                }
-
-        } catch (err) {
-            console.warn("Failed to check role or request:", err.message);
+            }
         }
-    }
+        catch
+            (err)
+            {
+                console.warn("Failed to check role or request:", err.message);
+            }
+        }
 
 
-    document.getElementById("verify-email-btn").addEventListener("click", () => {
-        const email = document.getElementById("email").textContent.trim();
+        document.getElementById("verify-email-btn").addEventListener("click", () => {
+            const email = document.getElementById("email").textContent.trim();
 
-        showModal({
-            title: "Verify Email",
-            message: `
+            showModal({
+                title: "Verify Email",
+                message: `
                 <p>A verification code will be sent to your email.</p>
                 <div id="verification-input" style="display:none;">
                     <input type="text" id="email-verification-code" class="form-control my-3" placeholder="Enter code here" />
                 </div>
             `,
-            buttons: [
-                {
-                    text: "Send Code",
-                    variant: "primary",
-                    onClick: async () => {
-                        try {
-                            const res = await fetch("/api/email/send-verification", {
-                                method: "POST",
-                                headers: {"Content-Type": "application/json"},
-                                credentials: "include",
-                                body: JSON.stringify({email})
-                            });
-
-                            const data = await res.json();
-                            if (!res.ok) throw new Error(data.error || "Failed to send code");
-
-                            document.getElementById("verification-input").style.display = "block";
-
-                            const footer = document.getElementById("globalModalFooter");
-                            footer.innerHTML = "";
-
-                            const verifyBtn = document.createElement("button");
-                            verifyBtn.className = "btn btn-success";
-                            verifyBtn.textContent = "Submit Code";
-                            verifyBtn.onclick = async () => {
-                                const code = document.getElementById("email-verification-code").value.trim();
-                                if (!code) return;
-
-                                const verifyRes = await fetch("/api/email/verify-code", {
+                buttons: [
+                    {
+                        text: "Send Code",
+                        variant: "primary",
+                        onClick: async () => {
+                            try {
+                                const res = await fetch("/api/email/send-verification", {
                                     method: "POST",
                                     headers: {"Content-Type": "application/json"},
                                     credentials: "include",
-                                    body: JSON.stringify({email, code})
+                                    body: JSON.stringify({email})
                                 });
 
-                                const result = await verifyRes.json();
+                                const data = await res.json();
+                                if (!res.ok) throw new Error(data.error || "Failed to send code");
 
-                                if (verifyRes.ok) {
-                                    showModal({
-                                        title: "Verified ✅",
-                                        message: "Email successfully verified!",
-                                        buttons: [{text: "OK", variant: "primary", dismiss: true}]
+                                document.getElementById("verification-input").style.display = "block";
+
+                                const footer = document.getElementById("globalModalFooter");
+                                footer.innerHTML = "";
+
+                                const verifyBtn = document.createElement("button");
+                                verifyBtn.className = "btn btn-success";
+                                verifyBtn.textContent = "Submit Code";
+                                verifyBtn.onclick = async () => {
+                                    const code = document.getElementById("email-verification-code").value.trim();
+                                    if (!code) return;
+
+                                    const verifyRes = await fetch("/api/email/verify-code", {
+                                        method: "POST",
+                                        headers: {"Content-Type": "application/json"},
+                                        credentials: "include",
+                                        body: JSON.stringify({email, code})
                                     });
-                                    setTimeout(() => window.location.reload(), 1000);
-                                } else {
-                                    showModal({
-                                        title: "Invalid Code",
-                                        message: result.error || "Verification failed.",
-                                        buttons: [{text: "Close", variant: "danger", dismiss: true}]
-                                    });
-                                }
-                            };
-                            footer.appendChild(verifyBtn);
 
-                            const cancelBtn = document.createElement("button");
-                            cancelBtn.className = "btn btn-secondary";
-                            cancelBtn.setAttribute("data-bs-dismiss", "modal");
-                            cancelBtn.textContent = "Cancel";
-                            footer.appendChild(cancelBtn);
+                                    const result = await verifyRes.json();
 
-                        } catch (err) {
-                            showModal({
-                                title: "Error",
-                                message: err.message || "Failed to send verification email.",
-                                buttons: [{text: "Close", variant: "danger", dismiss: true}]
-                            });
-                        }
-                    }
-                },
-                {text: "Cancel", variant: "secondary", dismiss: true}
-            ]
-        });
-    });
+                                    if (verifyRes.ok) {
+                                        showModal({
+                                            title: "Verified ✅",
+                                            message: "Email successfully verified!",
+                                            buttons: [{text: "OK", variant: "primary", dismiss: true}]
+                                        });
+                                        setTimeout(() => window.location.reload(), 1000);
+                                    } else {
+                                        showModal({
+                                            title: "Invalid Code",
+                                            message: result.error || "Verification failed.",
+                                            buttons: [{text: "Close", variant: "danger", dismiss: true}]
+                                        });
+                                    }
+                                };
+                                footer.appendChild(verifyBtn);
 
-    document.getElementById("verify-phone-btn").addEventListener("click", () => {
-        showModal({
-            title: "Verify Phone",
-            message: "A verification code will be sent to your phone number.",
-            buttons: [
-                {text: "Send SMS", variant: "success", dismiss: true},
-                {text: "Cancel", variant: "secondary", dismiss: true}
-            ]
-        });
-    });
+                                const cancelBtn = document.createElement("button");
+                                cancelBtn.className = "btn btn-secondary";
+                                cancelBtn.setAttribute("data-bs-dismiss", "modal");
+                                cancelBtn.textContent = "Cancel";
+                                footer.appendChild(cancelBtn);
 
-    document.getElementById("request-admin-btn").addEventListener("click", () => {
-        const btn = document.getElementById("request-admin-btn");
-        if (btn.disabled) return;
-
-        showModal({
-            title: "Request Admin Access",
-            message: "Do you want to request admin rights?",
-            buttons: [
-                {
-                    text: "Request",
-                    variant: "primary",
-                    onClick: async () => {
-                        try {
-                            const res = await fetch("/api/admin_request/request", {
-                                method: "POST",
-                                headers: {"Content-Type": "application/json"},
-                                credentials: "include"
-                            });
-
-                            const data = await res.json();
-                            if (res.ok) {
+                            } catch (err) {
                                 showModal({
-                                    title: "Request Sent",
-                                    message: "Your request has been submitted for review.",
-                                    buttons: [{text: "OK", variant: "success", dismiss: true}]
-                                });
-
-                                // Optional: disable button after success
-                                btn.disabled = true;
-                                btn.textContent = "Request Pending";
-
-                            } else {
-                                showModal({
-                                    title: "Already Requested",
-                                    message: data.error || "You already submitted a request.",
-                                    buttons: [{text: "Close", variant: "warning", dismiss: true}]
+                                    title: "Error",
+                                    message: err.message || "Failed to send verification email.",
+                                    buttons: [{text: "Close", variant: "danger", dismiss: true}]
                                 });
                             }
-
-                        } catch (err) {
-                            showModal({
-                                title: "Error",
-                                message: err.message || "Failed to submit request.",
-                                buttons: [{text: "Close", variant: "danger", dismiss: true}]
-                            });
                         }
-                    }
-                },
-                {text: "Cancel", variant: "secondary", dismiss: true}
-            ]
+                    },
+                    {text: "Cancel", variant: "secondary", dismiss: true}
+                ]
+            });
         });
-    });
+
+        document.getElementById("verify-phone-btn").addEventListener("click", () => {
+            showModal({
+                title: "Verify Phone",
+                message: "A verification code will be sent to your phone number.",
+                buttons: [
+                    {text: "Send SMS", variant: "success", dismiss: true},
+                    {text: "Cancel", variant: "secondary", dismiss: true}
+                ]
+            });
+        });
+
+        document.getElementById("request-admin-btn").addEventListener("click", () => {
+            const btn = document.getElementById("request-admin-btn");
+            if (btn.disabled) return;
+
+            showModal({
+                title: "Request Admin Access",
+                message: "Do you want to request admin rights?",
+                buttons: [
+                    {
+                        text: "Request",
+                        variant: "primary",
+                        onClick: async () => {
+                            try {
+                                const res = await fetch("/api/admin_request/request", {
+                                    method: "POST",
+                                    headers: {"Content-Type": "application/json"},
+                                    credentials: "include"
+                                });
+
+                                const data = await res.json();
+                                if (res.ok) {
+                                    showModal({
+                                        title: "Request Sent",
+                                        message: "Your request has been submitted for review.",
+                                        buttons: [{text: "OK", variant: "success", dismiss: true}]
+                                    });
+
+                                    // Optional: disable button after success
+                                    btn.disabled = true;
+                                    btn.textContent = "Request Pending";
+
+                                } else {
+                                    showModal({
+                                        title: "Already Requested",
+                                        message: data.error || "You already submitted a request.",
+                                        buttons: [{text: "Close", variant: "warning", dismiss: true}]
+                                    });
+                                }
+
+                            } catch (err) {
+                                showModal({
+                                    title: "Error",
+                                    message: err.message || "Failed to submit request.",
+                                    buttons: [{text: "Close", variant: "danger", dismiss: true}]
+                                });
+                            }
+                        }
+                    },
+                    {text: "Cancel", variant: "secondary", dismiss: true}
+                ]
+            });
+        });
 
 
-    window.onload = () => {
-        loadProfile();
-    };
+        window.onload = () => {
+            loadProfile();
+        };
 </script>
 {% endblock %}

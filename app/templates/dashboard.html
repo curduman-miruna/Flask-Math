@@ -8,12 +8,23 @@
     <div class="card mb-4">
         <div class="card-body d-flex flex-column">
             <h5>Power (xⁿ)</h5>
-            <div class="mb-3 d-flex gap-2 flex-wrap">
+            <div class="mb-3 d-flex gap-2 flex-wrap align-items-center">
                 <input type="number" id="pow-base" class="form-control" placeholder="Base" style="max-width: 180px;">
                 <input type="number" id="pow-exp" class="form-control" placeholder="Exponent" style="max-width: 180px;">
-                <button class="btn btn-dark" onclick="callPower()">Compute</button>
+                <button id="pow-btn" class="btn btn-dark" onclick="callPower()">Compute</button>
+                <div id="pow-loading" class="spinner-border spinner-border-sm text-primary d-none" role="status"></div>
+                <button class="btn btn-outline-secondary" onclick="clearResult('pow-result')">Reset</button>
             </div>
-            <div id="pow-result" class="result-box d-none"></div>
+            <div class="d-flex align-items-start">
+                <div id="pow-icons" class="d-none d-flex flex-column align-items-start me-2">
+                    <i class="fas fa-copy text-primary mb-2" role="button" onclick="copyVisible('pow-result')"
+                       title="Copy"></i>
+                    <i class="fas fa-exchange-alt text-secondary" role="button" onclick="toggleResult('pow-result')"
+                       title="Toggle format"></i>
+                </div>
+                <div id="pow-result" class="result-box d-none small bg-light border rounded p-2 position-relative w-100"
+                     style="max-height: 120px; overflow-y: auto; white-space: normal;"></div>
+            </div>
         </div>
     </div>
 
@@ -21,11 +32,22 @@
     <div class="card mb-4">
         <div class="card-body d-flex flex-column">
             <h5>Fibonacci (n-th term)</h5>
-            <div class="mb-3 d-flex gap-2 flex-wrap">
+            <div class="mb-3 d-flex gap-2 flex-wrap align-items-center">
                 <input type="number" id="fib-n" class="form-control" placeholder="n" style="max-width: 180px;">
-                <button class="btn btn-dark" onclick="callFibonacci()">Compute</button>
+                <button id="fib-btn" class="btn btn-dark" onclick="callFibonacci()">Compute</button>
+                <div id="fib-loading" class="spinner-border spinner-border-sm text-primary d-none" role="status"></div>
+                <button class="btn btn-outline-secondary" onclick="clearResult('fib-result')">Reset</button>
             </div>
-            <div id="fib-result" class="result-box d-none"></div>
+            <div class="d-flex align-items-start">
+                <div id="fib-icons" class="d-none d-flex flex-column align-items-start me-2">
+                    <i class="fas fa-copy text-primary mb-2" role="button" onclick="copyVisible('fib-result')"
+                       title="Copy"></i>
+                    <i class="fas fa-exchange-alt text-secondary" role="button" onclick="toggleResult('fib-result')"
+                       title="Toggle format"></i>
+                </div>
+                <div id="fib-result" class="result-box d-none small bg-light border rounded p-2 position-relative w-100"
+                     style="max-height: 120px; overflow-y: auto; white-space: normal;"></div>
+            </div>
         </div>
     </div>
 
@@ -33,88 +55,148 @@
     <div class="card mb-4">
         <div class="card-body d-flex flex-column">
             <h5>Factorial (n!)</h5>
-            <div class="mb-3 d-flex gap-2 flex-wrap">
+            <div class="mb-3 d-flex gap-2 flex-wrap align-items-center">
                 <input type="number" id="fact-n" class="form-control" placeholder="n" style="max-width: 180px;">
-                <button class="btn btn-dark" onclick="callFactorial()">Compute</button>
+                <button id="fact-btn" class="btn btn-dark" onclick="callFactorial()">Compute</button>
+                <div id="fact-loading" class="spinner-border spinner-border-sm text-primary d-none" role="status"></div>
+                <button class="btn btn-outline-secondary" onclick="clearResult('fact-result')">Reset</button>
             </div>
-            <div id="fact-result" class="result-box d-none"></div>
+            <div class="d-flex align-items-start">
+                <div id="fact-icons" class="d-none d-flex flex-column align-items-start me-2">
+                    <i class="fas fa-copy text-primary mb-2" role="button" onclick="copyVisible('fact-result')"
+                       title="Copy"></i>
+                    <i class="fas fa-exchange-alt text-secondary" role="button" onclick="toggleResult('fact-result')"
+                       title="Toggle format"></i>
+                </div>
+                <div id="fact-result"
+                     class="result-box d-none small bg-light border rounded p-2 position-relative w-100"
+                     style="max-height: 120px; overflow-y: auto; white-space: normal;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1055">
+    <div id="copyToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive"
+         aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">Copied to clipboard!</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
         </div>
     </div>
 </div>
 
 <script>
-    function showResult(elementId, resultText) {
-        const el = document.getElementById(elementId);
-        el.textContent = resultText; // display full result as-is
-        el.classList.remove("d-none");
+    function showResultBox(id, full, scientific) {
+        const box = document.getElementById(id);
+        const icons = document.getElementById(id.replace("-result", "-icons"));
+        if (box && icons) {
+            box.classList.remove("d-none");
+            icons.classList.remove("d-none");
+            box.innerHTML = `
+      <span id="${id}-sci">${scientific}</span>
+      <span id="${id}-full" class="d-none">${full}</span>
+    `;
+        }
+    }
+
+    function copyVisible(id) {
+        const el = document.getElementById(id + "-sci")?.classList.contains("d-none")
+            ? document.getElementById(id + "-full")
+            : document.getElementById(id + "-sci");
+        if (!el) return;
+        navigator.clipboard.writeText(el.textContent.trim());
+        const toast = document.getElementById("copyToast");
+        if (toast) new bootstrap.Toast(toast).show();
+    }
+
+    function toggleResult(id) {
+        const sci = document.getElementById(id + "-sci");
+        const full = document.getElementById(id + "-full");
+        sci?.classList.toggle("d-none");
+        full?.classList.toggle("d-none");
+    }
+
+    function clearResult(id) {
+        const box = document.getElementById(id);
+        const icons = document.getElementById(id.replace("-result", "-icons"));
+        box.classList.add("d-none");
+        icons.classList.add("d-none");
+        box.innerHTML = "";
+    }
+
+    function toggleSpinner(show, id) {
+        const spinner = document.getElementById(id);
+        if (spinner) spinner.classList.toggle("d-none", !show);
     }
 
     async function callPower() {
+        toggleSpinner(true, "pow-loading");
         const base = document.getElementById("pow-base").value;
         const exponent = document.getElementById("pow-exp").value;
-
-        if (base === "" || exponent === "") {
-            showResult("pow-result", "Please enter both base and exponent.");
-            return;
-        }
+        if (base === "" || exponent === "") return;
 
         const res = await fetch("/api/math/pow", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ base: Number(base), exponent: Number(exponent) }),
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({base: Number(base), exponent: Number(exponent)}),
             credentials: "include"
         });
 
         const data = await res.json();
-        const value = data.result !== undefined
-            ? data.result.toString()
-            : `Error: ${data.error || "Unknown error"}`;
-        showResult("pow-result", `Result:\n${value}`);
+        toggleSpinner(false, "pow-loading");
+        if (res.ok && data.result) {
+            showResultBox("pow-result", data.result?.string, data.result?.scientific);
+        } else {
+            const errorMsg = data.msg ? data.msg.join("\n") : data.error || "Error";
+            showResultBox("pow-result", errorMsg, errorMsg);
+        }
     }
 
     async function callFibonacci() {
+        toggleSpinner(true, "fib-loading");
         const n = document.getElementById("fib-n").value;
-
-        if (n === "") {
-            showResult("fib-result", "Please enter a valid number.");
-            return;
-        }
+        if (n === "") return;
 
         const res = await fetch("/api/math/fibonacci", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ n: Number(n) }),
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({n: Number(n)}),
             credentials: "include"
         });
 
         const data = await res.json();
-        const value = data.result !== undefined
-            ? data.result.toString()
-            : `Error: ${data.error || "Unknown error"}`;
-        showResult("fib-result", `Result:\n${value}`);
+        toggleSpinner(false, "fib-loading");
+        if (res.ok && data.result) {
+            showResultBox("fib-result", data.result?.string, data.result?.scientific);
+        } else {
+            const errorMsg = data.msg ? data.msg.join("\n") : data.error || "Error";
+            showResultBox("fib-result", errorMsg, errorMsg);
+        }
     }
 
     async function callFactorial() {
+        toggleSpinner(true, "fact-loading");
         const n = document.getElementById("fact-n").value;
-
-        if (n === "") {
-            showResult("fact-result", "Please enter a valid number.");
-            return;
-        }
+        if (n === "") return;
 
         const res = await fetch("/api/math/factorial", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ n: Number(n) }),
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({n: Number(n)}),
             credentials: "include"
         });
 
         const data = await res.json();
-        const value = data.result !== undefined
-            ? data.result.toString()
-            : `Error: ${data.error || "Unknown error"}`;
-        showResult("fact-result", `Result:\n${value}`);
+        toggleSpinner(false, "fact-loading");
+        if (res.ok && data.result) {
+            showResultBox("fact-result", data.result?.string, data.result?.scientific);
+        } else {
+            const errorMsg = data.msg ? data.msg.join("\n") : data.error || "Error";
+            showResultBox("fact-result", errorMsg, errorMsg);
+        }
     }
 </script>
-
 {% endblock %}

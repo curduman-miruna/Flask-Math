@@ -3,9 +3,6 @@ import decimal
 
 
 def power(base, exponent):
-    if abs(exponent) > 10000:
-        raise ValueError("Exponentul este prea mare")
-
     try:
         base = decimal.Decimal(str(base))
         exponent = decimal.Decimal(str(exponent))
@@ -16,10 +13,6 @@ def power(base, exponent):
 
 
 def fibonacci(n):
-    if n < 0:
-        raise ValueError("n trebuie sa fie pozitiv")
-    if n > 1_000_000:
-        raise ValueError("n este prea mare (max 1 milion)")
     try:
         return gmpy2.fib(n)
     except Exception as e:
@@ -27,10 +20,6 @@ def fibonacci(n):
 
 
 def factorial(n):
-    if n < 0:
-        raise ValueError("n trebuie sa fie pozitiv")
-    if n > 100_000:
-        raise ValueError("n este prea mare (max 100000)")
     try:
         return int(gmpy2.fac(n))
     except Exception as e:

@@ -11,8 +11,8 @@ class PowerInput(BaseModel):
 
 
 class FibonacciInput(BaseModel):
-    n: int = Field(ge=0, le=10_000_000, description="n must be >= 0 and <= 10 million")
+    n: int = Field(ge=0, description="n must be >= 0")
 
 
 class FactorialInput(BaseModel):
-    n: int = Field(ge=0, le=1_000_000, description="n must be >= 0 and <= 1 million")
+    n: int = Field(ge=0, description="n must be >= 0")
