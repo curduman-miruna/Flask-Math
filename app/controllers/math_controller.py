@@ -4,18 +4,12 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 from app.utils.decorators.log_decorator import log_to_postgres
-from app.services.math_service import power, fibonacci, factorial
+from app.services.math_service import power, fibonacci, factorial, to_scientific_str
 from app.utils.decorators.cache_decorator import cache_response
 from app.schemas.math_schema import PowerInput, FibonacciInput, FactorialInput
 from app.utils.log_to_redis import log_to_redis
 
 math_bp = Blueprint("math", __name__, url_prefix="/api/math")
-
-def to_scientific_str(val, precision=5):
-    s = str(val)
-    exponent = len(s) - 1
-    significand = s[:precision].ljust(precision, '0')  # pad if needed
-    return f"{significand[0]}.{significand[1:]}e+{exponent}"
 
 
 @math_bp.route("/pow", methods=["POST"])
@@ -28,7 +22,7 @@ def pow_endpoint():
         result = power(data.base, data.exponent)
 
         log_to_redis(level="INFO", message=f"Power calculation: {data.base}^{data.exponent} = {result}")
-        val_string = str(result)
+        val_string = result.__str__()
         val_scientific_str = to_scientific_str(result)
         result = { "string": val_string, "scientific": val_scientific_str }
         return jsonify({
@@ -56,7 +50,7 @@ def fibonacci_endpoint():
 
         if result > 2**31 - 1:
             log_to_redis(level="WARNING", message=f"Fibonacci result for n={data.n} exceeds int limit")
-        val_string = str(result)
+        val_string = result.__str__()
         val_scientific_str = to_scientific_str(result)
         result = { "string": val_string, "scientific": val_scientific_str }
         return jsonify({
@@ -77,7 +71,7 @@ def factorial_endpoint():
         result = factorial(data.n)
 
         log_to_redis(level="INFO", message=f"Factorial calculation for n={data.n}: {result}")
-        val_string = str(result)
+        val_string = result.__str__()
         val_scientific_str = to_scientific_str(result)
         result = { "string": val_string, "scientific": val_scientific_str }
         return jsonify({

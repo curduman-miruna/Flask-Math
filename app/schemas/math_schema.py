@@ -2,12 +2,8 @@ from pydantic import BaseModel, Field
 
 
 class PowerInput(BaseModel):
-    base: float = Field(
-        ge=-1e5, le=1e5, description="Base must be between -100,000 and 100,000"
-    )
-    exponent: float = Field(
-        ge=-10_000, le=10_000, description="Exponent must be between -10,000 and 10,000"
-    )
+    base: float = Field(..., description="Base must be a float")
+    exponent: float = Field(..., description="Exponent must be a float")
 
 
 class FibonacciInput(BaseModel):

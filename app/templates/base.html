@@ -156,7 +156,7 @@
                 el.textContent = btn.text || "OK";
                 if (btn.dismiss) el.setAttribute("data-bs-dismiss", "modal");
                 if (btn.href) el.onclick = () => window.location.href = btn.href;
-                if (btn.onClick) el.onclick = btn.onClick;  // adaugă dacă nu ai deja
+                if (btn.onClick) el.onclick = btn.onClick;
                 footer.appendChild(el);
             });
         } else {
@@ -170,6 +170,13 @@
         const modal = new bootstrap.Modal(document.getElementById("globalModal"));
         modal.show();
     }
+
+    function closeModal() {
+        const modalEl = document.getElementById('globalModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+    }
+
 
 </script>
 

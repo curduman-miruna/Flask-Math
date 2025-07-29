@@ -1,15 +1,20 @@
 import gmpy2
-import decimal
+from gmpy2 import mpz
 
+def to_scientific_str(val, precision=5):
+    s = val.__str__()
+    exponent = len(s) - 1
+    significand = s[:precision].ljust(precision, '0')  # pad if needed
+    return f"{significand[0]}.{significand[1:]}e+{exponent}"
 
 def power(base, exponent):
     try:
-        base = decimal.Decimal(str(base))
-        exponent = decimal.Decimal(str(exponent))
+        base = mpz(base)
+        exponent = mpz(exponent)
         result = base**exponent
-    except (decimal.Overflow, decimal.InvalidOperation):
+    except OverflowError:
         raise ValueError("Numar prea mare pentru calcul")
-    return float(result)
+    return result
 
 
 def fibonacci(n):
