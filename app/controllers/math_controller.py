@@ -1,10 +1,10 @@
 import decimal
-
+from gmpy2 import mpfr
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 from app.utils.decorators.log_decorator import log_to_postgres
-from app.services.math_service import power, fibonacci, factorial, to_scientific_str
+from app.services.math_service import power, fibonacci, factorial
 from app.utils.decorators.cache_decorator import cache_response
 from app.schemas.math_schema import PowerInput, FibonacciInput, FactorialInput
 from app.utils.log_to_redis import log_to_redis
@@ -23,7 +23,7 @@ def pow_endpoint():
 
         log_to_redis(level="INFO", message=f"Power calculation: {data.base}^{data.exponent} = {result}")
         val_string = result.__str__()
-        val_scientific_str = to_scientific_str(result)
+        val_scientific_str = mpfr(result, precision=10).__str__()
         result = { "string": val_string, "scientific": val_scientific_str }
         return jsonify({
             "result": result
@@ -51,7 +51,7 @@ def fibonacci_endpoint():
         if result > 2**31 - 1:
             log_to_redis(level="WARNING", message=f"Fibonacci result for n={data.n} exceeds int limit")
         val_string = result.__str__()
-        val_scientific_str = to_scientific_str(result)
+        val_scientific_str = mpfr(result, precision=10).__str__()
         result = { "string": val_string, "scientific": val_scientific_str }
         return jsonify({
             "result": result
@@ -72,7 +72,7 @@ def factorial_endpoint():
 
         log_to_redis(level="INFO", message=f"Factorial calculation for n={data.n}: {result}")
         val_string = result.__str__()
-        val_scientific_str = to_scientific_str(result)
+        val_scientific_str = mpfr(result, precision=10).__str__()
         result = { "string": val_string, "scientific": val_scientific_str }
         return jsonify({
             "result": result

@@ -1,12 +1,6 @@
 import gmpy2
 from gmpy2 import mpz
 
-def to_scientific_str(val, precision=5):
-    s = val.__str__()
-    exponent = len(s) - 1
-    significand = s[:precision].ljust(precision, '0')  # pad if needed
-    return f"{significand[0]}.{significand[1:]}e+{exponent}"
-
 def power(base, exponent):
     try:
         base = mpz(base)
