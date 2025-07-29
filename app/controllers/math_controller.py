@@ -5,6 +5,7 @@ from app.utils.decorators.log_decorator import log_to_postgres
 from app.services.math_service import power, fibonacci, factorial
 from app.utils.decorators.cache_decorator import cache_response
 from app.schemas.math_schema import PowerInput, FibonacciInput, FactorialInput
+from app.utils.log_to_redis import log_to_redis
 
 math_bp = Blueprint("math", __name__, url_prefix="/api/math")
 
@@ -17,10 +18,14 @@ def pow_endpoint():
     try:
         data = PowerInput(**request.get_json())
         result = power(data.base, data.exponent)
+        log_to_redis(level="INFO", message=f"Power calculation: "
+                                           f"{data.base}^{data.exponent} = {result}")
         return jsonify({"result": str(result)}), 200
     except ValidationError as ve:
+        log_to_redis(level="ERROR", message=f"Validation error: {ve.errors()}")
         return jsonify({"validation_error": ve.errors()}), 422
     except Exception as e:
+        log_to_redis(level="ERROR", message=f"Error in power calculation: {str(e)}")
         return jsonify({"error": str(e)}), 400
 
 
@@ -32,10 +37,13 @@ def fibonacci_endpoint():
     try:
         data = FibonacciInput(**request.get_json())
         result = fibonacci(data.n)
+        log_to_redis(level="INFO", message=f"Fibonacci calculation for n={data.n}: {result}")
         return jsonify({"result": str(result)}), 200
     except ValidationError as ve:
+        log_to_redis(level="ERROR", message=f"Validation error: {ve.errors()}")
         return jsonify({"validation_error": ve.errors()}), 422
     except Exception as e:
+        log_to_redis(level="ERROR", message=f"Error in Fibonacci calculation: {str(e)}")
         return jsonify({"error": str(e)}), 400
 
 
@@ -47,8 +55,11 @@ def factorial_endpoint():
     try:
         data = FactorialInput(**request.get_json())
         result = factorial(data.n)
+        log_to_redis(level="INFO", message=f"Factorial calculation for n={data.n}: {result}")
         return jsonify({"result": str(result)}), 200
     except ValidationError as ve:
+        log_to_redis(level="ERROR", message=f"Validation error: {ve.errors()}")
         return jsonify({"validation_error": ve.errors()}), 422
     except Exception as e:
+        log_to_redis(level="ERROR", message=f"Error in factorial calculation: {str(e)}")
         return jsonify({"error": str(e)}), 400

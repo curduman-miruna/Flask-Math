@@ -1,90 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Profile{% endblock %}
 {% block content %}
-<style>
-    .profile-wrapper {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        min-height: calc(100vh - 4rem);
-        background: white;
-        border-radius: 24px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-    }
-
-    .profile-content {
-        flex: 1 1 50%;
-        padding: 4rem 4rem 4rem 8rem;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        backdrop-filter: blur(8px);
-        background: rgba(255, 255, 255, 0.95);
-    }
-
-    .profile-image {
-        flex: 1 1 50%;
-        height: 500px;
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-        background-image: url("https://illustrations.popsy.co/teal/video-call.svg");
-    }
-
-    .profile-field {
-        font-size: 1.1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .profile-label {
-        font-weight: 600;
-        color: #1f2937;
-    }
-
-    .status-icon {
-        margin-left: 8px;
-        font-size: 1rem;
-    }
-
-    .status-icon.verified {
-        color: green;
-    }
-
-    .status-icon.not-verified {
-        color: #dc2626;
-    }
-
-    .btn-inline {
-        margin-left: 12px;
-        font-size: 0.85rem;
-        padding: 0.3rem 0.8rem;
-        border-radius: 8px;
-    }
-
-    .btn-request-admin {
-        margin-top: 2rem;
-        width: fit-content;
-        background-color: #212121;
-        color: white;
-        font-weight: bold;
-        border-radius: 10px;
-        padding: 0.6rem 1.2rem;
-        text-decoration: none;
-    }
-
-    .btn-request-admin:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-    .btn-request-admin:hover:enabled {
-        background-color: #3B666B;
-    }
-</style>
 
 <div class="profile-wrapper">
     <div class="profile-content">
@@ -184,7 +100,6 @@
 
             const role = roleData.role;
             const requestBtn = document.getElementById("request-admin-btn");
-            const requestText = document.getElementById("request-admin-text");
             const infoText = document.getElementById("verify-required-msg");
 
             if (role === "admin" || role === "superadmin") return;
@@ -205,22 +120,20 @@
 
             if (reqRes.ok) {
                 const reqData = await reqRes.json();
-                const status = (reqData.status || "").toUpperCase();
-                const label = {
-                    PENDING: "Pending",
-                    APPROVED: "Approved",
-                    REJECTED: "Rejected"
-                }[status] || "Unknown";
-
-                if (label !== "Unknown") {
-                    requestBtn.textContent = `Request Status: ${label}`;
-                } else {
-                    console.warn("Missing #request-admin-text element in DOM");
+                console.log("Request data:", reqData);
+                if (reqData.exists) {
+                    const normalized = reqData.request.status.toUpperCase();
+                    if (["PENDING", "APPROVED", "REJECTED"].includes(normalized)) {
+                        label = normalized.charAt(0) + normalized.slice(1).toLowerCase();  // ex: PENDING → Pending
+                    }
                 }
-
+                else {
+                    requestBtn.disabled = false;
+                    requestBtn.textContent = "Request Admin Access";
+                }
+                requestBtn.textContent = `Request Status: ${label}`;
                 requestBtn.disabled = true;
-            }
-
+                }
 
         } catch (err) {
             console.warn("Failed to check role or request:", err.message);

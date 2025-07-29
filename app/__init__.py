@@ -1,11 +1,9 @@
-from datetime import datetime, timezone, timedelta
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect
 from app.database import init_db
 from app.controllers.auth_controller import auth_bp
 import os
-from flask_jwt_extended import JWTManager, get_jwt, create_access_token, set_access_cookies, get_jwt_identity
+from flask_jwt_extended import JWTManager, get_jwt
 from flask_jwt_extended.view_decorators import verify_jwt_in_request
-from app.models import user, admin_request, log_event
 from app.controllers.web_controller import web_bp
 from app.controllers.math_controller import math_bp
 from app.controllers.admin_controller import admin_bp
@@ -14,6 +12,7 @@ from app.controllers.email_controller import email_bp
 from app.controllers.admin_request_controller import admin_req_bp
 from prometheus_flask_exporter import PrometheusMetrics
 from app.email_extension import mail
+
 
 def create_app():
     app = Flask(__name__)
@@ -28,7 +27,11 @@ def create_app():
     app.config["JWT_ACCESS_COOKIE_PATH"] = os.getenv("JWT_ACCESS_COOKIE_PATH")
     app.config["JWT_REFRESH_COOKIE_PATH"] = os.getenv("JWT_REFRESH_COOKIE_PATH")
 
-    jwt = JWTManager(app)
+    @app.route("/")
+    def index():
+        return redirect("/web")
+
+    JWTManager(app)
 
     @app.context_processor
     def inject_user():
@@ -41,12 +44,12 @@ def create_app():
 
     PrometheusMetrics(app, path=None)
 
-    app.config['MAIL_SERVER']= os.getenv('MAIL_SERVER')
-    app.config['MAIL_PORT'] = os.getenv('MAIL_PORT')
-    app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
-    app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
-    app.config['MAIL_USE_TLS'] = True
-    app.config['MAIL_USE_SSL'] = False
+    app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER")
+    app.config["MAIL_PORT"] = os.getenv("MAIL_PORT")
+    app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
+    app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
+    app.config["MAIL_USE_TLS"] = True
+    app.config["MAIL_USE_SSL"] = False
     mail.init_app(app)
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")

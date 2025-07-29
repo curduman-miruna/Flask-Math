@@ -12,6 +12,7 @@ from flask_jwt_extended import (
 )
 from app.schemas.auth_schema import RegisterSchema, LoginSchema
 from pydantic import ValidationError
+from app.utils.log_to_redis import log_to_redis
 
 from app.utils.decorators.log_decorator import log_to_postgres
 
@@ -20,7 +21,7 @@ auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/register", methods=["POST"])
 @log_to_postgres(source="/auth/register", service_name="auth_service")
-async def register():
+def register():
     try:
         data = RegisterSchema(**request.get_json())
         user = auth_service.register_user(
@@ -30,10 +31,13 @@ async def register():
             phone_number=data.phone_number,
             password=data.password,
         )
+        log_to_redis(level="INFO", message=f"User {user.email} registered successfully")
         return jsonify(user.to_dict()), 201
     except ValidationError as ve:
+        log_to_redis(level="ERROR", message=f"Validation error: {ve.errors()}")
         return jsonify({"validation_error": ve.errors()}), 400
     except Exception as e:
+        log_to_redis(level="ERROR", message=f"Error during registration: {str(e)}")
         return jsonify({"error": str(e)}), 400
 
 
@@ -56,17 +60,21 @@ def login():
 
         set_access_cookies(resp, access_token)
         set_refresh_cookies(resp, refresh_token)
-
+        log_to_redis(level="INFO", message=f"User {user.email} logged in")
         return resp, 200
 
     except ValidationError as ve:
+        log_to_redis(level="ERROR", message=f"Validation error: {ve.errors()}")
         return jsonify({"validation_error": ve.errors()}), 400
 
     except ValueError as ve:
+        log_to_redis(level="ERROR", message=f"Login error: {str(ve)}")
         return jsonify({"error": str(ve)}), 401
 
+
     except Exception as e:
-        return jsonify({"error": e}), 500
+        log_to_redis(level="ERROR", message=f"Unexpected error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 
 @auth_bp.route("/refresh", methods=["POST"])
@@ -75,10 +83,9 @@ def login():
 def refresh_tokens():
     identity = get_jwt_identity()
     new_access = create_access_token(identity=identity)
-
     resp = jsonify({"msg": "Token refreshed"})
     set_access_cookies(resp, new_access)
-
+    log_to_redis(level="INFO", message=f"Tokens refreshed for user {identity}")
     return resp, 200
 
 
@@ -87,4 +94,5 @@ def refresh_tokens():
 def logout():
     resp = jsonify(msg="Logged out")
     unset_jwt_cookies(resp)
+    log_to_redis(level="INFO", message="User logged out")
     return resp, 200

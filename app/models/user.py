@@ -1,14 +1,17 @@
 import uuid
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy import CheckConstraint, event, and_, UniqueConstraint
+from sqlalchemy import CheckConstraint, UniqueConstraint
 from app.database import db
 from sqlalchemy.dialects.postgresql import UUID
 
-class User(db.Model):
-    __tablename__ = 'users'
 
-    sk = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)  # Surrogate Key UUID
+class User(db.Model):
+    __tablename__ = "users"
+
+    sk = db.Column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )  # Surrogate Key UUID
     id = db.Column(UUID(as_uuid=True), nullable=False)  # Business Key UUID
 
     full_name = db.Column(db.String(255), nullable=False)
@@ -25,9 +28,11 @@ class User(db.Model):
     phone_verified = db.Column(db.Boolean, default=False, nullable=False)
 
     __table_args__ = (
-        CheckConstraint("role IN ('user', 'admin', 'superadmin')", name='check_valid_role'),
-        UniqueConstraint('email', 'is_current', name='uq_current_email'),
-        UniqueConstraint('phone_number', 'is_current', name='uq_current_phone')
+        CheckConstraint(
+            "role IN ('user', 'admin', 'superadmin')", name="check_valid_role"
+        ),
+        UniqueConstraint("email", "is_current", name="uq_current_email"),
+        UniqueConstraint("phone_number", "is_current", name="uq_current_phone"),
     )
 
     def __init__(self, full_name, username, email, phone_number, password, role="user"):
@@ -58,7 +63,7 @@ class User(db.Model):
             "effective_from": self.effective_from,
             "effective_to": self.effective_to,
             "email_verified": self.email_verified,
-            "phone_verified": self.phone_verified
+            "phone_verified": self.phone_verified,
         }
 
     def to_public_dict(self):
@@ -68,8 +73,9 @@ class User(db.Model):
             "email": self.email,
             "phone_number": self.phone_number,
             "email_verified": self.email_verified,
-            "phone_verified": self.phone_verified
+            "phone_verified": self.phone_verified,
         }
+
 
 # === Versioning ===
 # @event.listens_for(User, 'before_update')

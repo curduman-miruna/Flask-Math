@@ -1,8 +1,5 @@
-import requests
-from flask import jsonify
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, REGISTRY
-
 from prometheus_client import REGISTRY
+
 
 def get_admin_metrics():
     data = []
@@ -11,16 +8,16 @@ def get_admin_metrics():
             "name": metric.name,
             "type": metric.type,
             "documentation": metric.documentation,
-            "samples": []
+            "samples": [],
         }
         for sample in metric.samples:
-            metric_entry["samples"].append({
-                "name": sample.name,
-                "labels": sample.labels,
-                "value": sample.value,
-                "timestamp": getattr(sample, "timestamp", None)
-            })
+            metric_entry["samples"].append(
+                {
+                    "name": sample.name,
+                    "labels": sample.labels,
+                    "value": sample.value,
+                    "timestamp": getattr(sample, "timestamp", None),
+                }
+            )
         data.append(metric_entry)
     return data
-
-

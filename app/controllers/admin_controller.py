@@ -6,6 +6,7 @@ from app.utils.decorators.role_required import role_required
 from app.services.admin_service import get_admin_metrics
 from flask import jsonify
 from flask import redirect, url_for
+from app.utils.log_to_redis import log_to_redis
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/web/admin")
 
@@ -16,9 +17,11 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/web/admin")
 @jwt_required()
 def metrics_page():
     try:
+        log_to_redis(level="INFO", message="Accessed admin metrics page")
         verify_jwt_in_request()
     except Exception:
         unset_jwt_cookies("Token expired")
+        log_to_redis(level="WARNING", message="JWT verification failed, redirecting to login")
         return redirect(url_for("web.login"))
     return render_template("admin_metrics.html")
 
@@ -27,6 +30,7 @@ def metrics_page():
 @jwt_required()
 @role_required(["admin", "superadmin"])
 def secure_metrics():
+    log_to_redis(level="INFO", message="Accessed admin metrics page")
     return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 
@@ -36,8 +40,10 @@ def secure_metrics():
 def metrics_json():
     try:
         metrics = get_admin_metrics()
+        log_to_redis(level="INFO", message="Fetched admin metrics in JSON format")
         return jsonify(metrics)
     except Exception as e:
+        log_to_redis(level="ERROR", message=f"Error fetching admin metrics: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -47,8 +53,9 @@ def metrics_json():
 def admin_requests():
     try:
         from app.services.admin_request_service import get_all_requests
-
         requests = get_all_requests()
+        log_to_redis(level="INFO", message="Fetched all admin requests")
         return render_template("admin_requests.html", requests=requests)
     except Exception as e:
+        log_to_redis(level="ERROR", message=f"Error fetching admin requests: {str(e)}")
         return jsonify({"error": str(e)}), 500

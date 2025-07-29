@@ -2,6 +2,7 @@ from functools import wraps
 from flask import request, jsonify
 from app.utils.cache import get_cache, set_cache
 
+
 def cache_response(cache_key_func, ttl=3600):
     def decorator(func):
         @wraps(func)
@@ -25,5 +26,7 @@ def cache_response(cache_key_func, ttl=3600):
             set_cache(cache_key, result_json["result"], ttl)
 
             return jsonify({"result": result_json["result"], "cached": False}), status
+
         return wrapper
+
     return decorator

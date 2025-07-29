@@ -2,12 +2,15 @@
 from app.database import db
 from datetime import datetime
 
+
 class AdminRequest(db.Model):
-    __tablename__ = 'admin_requests'
+    __tablename__ = "admin_requests"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.UUID(as_uuid=True), db.ForeignKey('users.sk'), nullable=False)
-    status = db.Column(db.String(20), nullable=False, default='PENDING')
+    user_id = db.Column(
+        db.UUID(as_uuid=True), db.ForeignKey("users.sk"), nullable=False
+    )
+    status = db.Column(db.String(20), nullable=False, default="PENDING")
     requested_at = db.Column(db.DateTime, nullable=False, default=datetime.now)
     resolved_at = db.Column(db.DateTime, nullable=True)
 
@@ -24,5 +27,5 @@ class AdminRequest(db.Model):
             "user_id": self.user_id,
             "status": self.status,
             "requested_at": self.requested_at,
-            "resolved_at": self.resolved_at
+            "resolved_at": self.resolved_at,
         }

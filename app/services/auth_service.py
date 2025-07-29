@@ -5,23 +5,24 @@ from sqlalchemy.exc import IntegrityError
 from flask_jwt_extended import create_access_token, create_refresh_token
 from datetime import timedelta
 
+
 def generate_tokens(user):
     identity = {
         "user_id": user["id"],
         "username": user["username"],
-        "role": user["role"]
+        "role": user["role"],
     }
-    access_token = create_access_token(identity=identity, expires_delta=timedelta(minutes=2))
+    access_token = create_access_token(
+        identity=identity, expires_delta=timedelta(minutes=2)
+    )
     refresh_token = create_refresh_token(identity=identity)
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token
-    }
+    return {"access_token": access_token, "refresh_token": refresh_token}
+
 
 def register_user(full_name, username, email, phone_number, password):
     existing_user = User.query.filter(
         (User.email == email) | (User.phone_number == phone_number),
-        User.is_current == True
+        User.is_current,
     ).first()
     if existing_user:
         raise ValueError("A user with this email or phone number already exists")
@@ -36,6 +37,7 @@ def register_user(full_name, username, email, phone_number, password):
         raise ValueError("Failed to register user due to a constraint violation")
 
     return user
+
 
 def login_user(email, password):
     user = User.query.filter_by(email=email, is_current=True).first()

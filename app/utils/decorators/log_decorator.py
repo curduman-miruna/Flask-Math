@@ -7,6 +7,7 @@ from uuid import UUID
 import time
 import traceback
 
+
 def log_to_postgres(source="API", service_name="N/A", operation=None):
     def decorator(fn):
         @wraps(fn)
@@ -39,10 +40,7 @@ def log_to_postgres(source="API", service_name="N/A", operation=None):
                 # Eroare de execuție
                 status_code = 500
                 event_type = "API_CALL_ERROR"
-                response_data = {
-                    "error": str(e),
-                    "traceback": traceback.format_exc()
-                }
+                response_data = {"error": str(e), "traceback": traceback.format_exc()}
                 response = jsonify({"error": str(e)}), 500
 
             duration_ms = int((time.perf_counter() - start_time) * 1000)
@@ -66,7 +64,7 @@ def log_to_postgres(source="API", service_name="N/A", operation=None):
                         user_id=user_id,
                         client_ip=request.remote_addr,
                         request_data=request.get_json(silent=True),
-                        response_data=response_data
+                        response_data=response_data,
                     )
                     db.session.add(log)
                     db.session.commit()
@@ -75,5 +73,7 @@ def log_to_postgres(source="API", service_name="N/A", operation=None):
                     print(f"[LOGGING ERROR] {log_err}")
 
             return response
+
         return wrapper
+
     return decorator
