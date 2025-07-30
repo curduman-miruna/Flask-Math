@@ -1,17 +1,40 @@
 # Flask-Math
 
-Flask-Math is a Python web application that provides a dashboard for monitoring application metrics, user management, math operations, and admin features. The project uses Flask and is structured for modularity and scalability.
+Flask-Math is a Python web application that provides a dashboard for monitoring application metrics, user access management, math operations, and admin features. The project uses Flask and is structured for modularity and scalability.
 - Demo - https://www.youtube.com/watch?v=-cjFvipsvB0
 
 ## Features
 
-- User registration, authentication, and profile management
-- Admin dashboard with application metrics (routes, response times, memory, CPU, GC)
+- User authentication and authorization with JWT: 
+  - Login and registration
+  - User roles (admin, user, superadmin)
+- Admin request management:
+  - Dashboard for admin requests for user to access metrics
+  - Superadmin approval for admin requests
+- Monitoring and metrics:
+  - Admin dashboard with application metrics (routes, response times, memory, CPU, GC)
+  - Prometheus integration for monitoring
 - Math operations via API and web interface
-- Email notifications and extensions
+  - Advanced math operations using gmpy2
+  - Result cached in Redis for 60 minutes
+  - 2 forms for math results:
+    - scientific notation: `1.23456789e+10`
+    - string representation: `12345678900`
+- Email verification:
+  - Flask-Mail for sending emails
+  - Only verified users can request admin access
 - RESTful API structure with controllers, services, and models
-- Database migrations with Alembic
-- Docker support for easy deployment
+  - Controllers for handling routes
+  - Services for business logic
+  - Models for database interactions
+  - Schemas for data validation and serialization using Pydantic:
+    - User schema
+    - Admin request schema
+    - Math operation schema
+- Logging and caching:
+  - Redis for caching math results
+  - Redis for logging events
+  - PostgreSQL for persistent API_CALL logs
 
 ## Project Structure
 
